@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>換気量計算ツール</title>
+    <meta name="description" content="患者の適正体重から一回換気量・分時換気量を自動計算するツールです。" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- ヘッダー -->
+        <header class="header">
+            <div class="header-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" />
+                    <path d="M12 6v6l4 2" />
+                </svg>
+            </div>
+            <h1>換気量計算ツール</h1>
+            <p class="header-subtitle">適正体重に基づく一回換気量・分時換気量の算出</p>
+        </header>
+
+        <!-- メインカード -->
+        <main class="main-card">
+            <!-- 入力セクション -->
+            <section class="input-section">
+                <h2 class="section-title">
+                    <span class="section-icon">📋</span>
+                    患者情報の入力
+                </h2>
+
+                <!-- 性別選択 -->
+                <div class="input-group">
+                    <label class="input-label">性別</label>
+                    <div class="gender-selector" id="genderSelector">
+                        <button class="gender-btn" data-gender="male" id="btnMale" type="button">
+                            <span class="gender-icon">♂</span>
+                            <span class="gender-text">男性</span>
+                        </button>
+                        <button class="gender-btn" data-gender="female" id="btnFemale" type="button">
+                            <span class="gender-icon">♀</span>
+                            <span class="gender-text">女性</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 身長入力（スライダー） -->
+                <div class="input-group">
+                    <label class="input-label">身長</label>
+                    <div class="slider-display">
+                        <span class="slider-value" id="sliderValue">165</span>
+                        <span class="slider-value-unit">cm</span>
+                    </div>
+                    <div class="slider-wrapper">
+                        <span class="slider-bound">100</span>
+                        <input type="range" id="heightInput" class="height-slider" min="100" max="200" step="1"
+                            value="165" />
+                        <span class="slider-bound">200</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 区切り線 -->
+            <div class="divider">
+                <div class="divider-line"></div>
+                <span class="divider-icon">▼</span>
+                <div class="divider-line"></div>
+            </div>
+
+            <!-- 結果セクション -->
+            <section class="result-section" id="resultSection">
+                <h2 class="section-title">
+                    <span class="section-icon">📊</span>
+                    計算結果
+                </h2>
+
+                <!-- 空のプレースホルダー -->
+                <div class="placeholder" id="placeholder">
+                    <div class="placeholder-icon">⚙️</div>
+                    <p>性別と身長を入力すると<br />計算結果が表示されます</p>
+                </div>
+
+                <!-- 結果カード -->
+                <div class="results-grid hidden" id="resultsGrid">
+                    <!-- 適正体重 -->
+                    <div class="result-card ibw-card">
+                        <div class="result-header">
+                            <span class="result-label">適正体重 (IBW)</span>
+                            <span class="result-formula" id="ibwFormula">Devine式</span>
+                        </div>
+                        <div class="result-value-wrapper">
+                            <span class="result-value" id="ibwValue">--</span>
+                            <span class="result-unit">kg</span>
+                        </div>
+                    </div>
+
+                    <!-- 一回換気量 -->
+                    <div class="result-card tv-card">
+                        <div class="result-header">
+                            <span class="result-label">一回換気量 (TV)</span>
+                            <span class="result-formula">IBW × 6〜8 mL/kg</span>
+                        </div>
+                        <div class="result-range">
+                            <div class="range-item">
+                                <span class="range-label">最小 (×6)</span>
+                                <div class="range-value-wrapper">
+                                    <span class="range-value" id="tvMin">--</span>
+                                    <span class="range-unit">mL</span>
+                                </div>
+                            </div>
+                            <div class="range-separator">〜</div>
+                            <div class="range-item">
+                                <span class="range-label">最大 (×8)</span>
+                                <div class="range-value-wrapper">
+                                    <span class="range-value" id="tvMax">--</span>
+                                    <span class="range-unit">mL</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- バー表示 -->
+                        <div class="tv-bar-container">
+                            <div class="tv-bar" id="tvBar">
+                                <div class="tv-bar-fill" id="tvBarFill"></div>
+                            </div>
+                            <div class="tv-bar-labels">
+                                <span id="tvBarMin"></span>
+                                <span id="tvBarMax"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 分時換気量 -->
+                    <div class="result-card mv-card">
+                        <div class="result-header">
+                            <span class="result-label">分時換気量 (MV)</span>
+                            <span class="result-formula">IBW × 100 mL/min</span>
+                        </div>
+                        <div class="result-value-wrapper">
+                            <span class="result-value" id="mvValue">--</span>
+                            <span class="result-unit">mL/min</span>
+                        </div>
+                        <div class="mv-liter">
+                            <span id="mvLiter">--</span> L/min
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- フッター -->
+        <footer class="footer">
+            <p>※ 適正体重はDevine式で算出しています</p>
+            <p>※ 臨床判断は必ず医師の判断に基づいてください</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
