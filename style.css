@@ -759,6 +759,114 @@ body {
 }
 
 /* ===================================
+   目安テーブル
+   =================================== */
+.ref-table-toggle {
+  margin-top: 0.75rem;
+}
+
+.ref-table-summary {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.4rem 0;
+  transition: color var(--transition-fast);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.ref-table-summary::-webkit-details-marker {
+  display: none;
+}
+
+.ref-table-summary::after {
+  content: "▸";
+  font-size: 0.6rem;
+  transition: transform var(--transition-normal);
+  margin-left: auto;
+}
+
+details[open] .ref-table-summary::after {
+  transform: rotate(90deg);
+}
+
+.ref-table-summary:hover {
+  color: var(--accent-orange);
+}
+
+.ref-table-wrapper {
+  margin-top: 0.5rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(251, 146, 60, 0.1);
+}
+
+.ref-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.68rem;
+  white-space: nowrap;
+}
+
+.ref-table th {
+  background: rgba(251, 146, 60, 0.1);
+  color: var(--accent-orange);
+  font-weight: 600;
+  padding: 0.4rem 0.5rem;
+  text-align: left;
+  position: sticky;
+  top: 0;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.ref-table td {
+  padding: 0.35rem 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  color: var(--text-secondary);
+}
+
+.ref-table td:first-child {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.ref-table td:nth-child(2) {
+  font-weight: 600;
+  text-align: center;
+}
+
+/* 行の色分け */
+.ref-row-high td:nth-child(2) {
+  color: #f87171;
+}
+
+.ref-row-mid td:nth-child(2) {
+  color: var(--accent-orange);
+}
+
+.ref-row-base {
+  background: rgba(251, 146, 60, 0.06);
+}
+
+.ref-row-base td:nth-child(2) {
+  color: var(--accent-teal);
+  font-weight: 700;
+}
+
+.ref-row-low td:nth-child(2) {
+  color: var(--accent-blue);
+}
+
+.ref-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* ===================================
    フッター
    =================================== */
 .footer {
