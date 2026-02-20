@@ -130,11 +130,11 @@
         const mvAdjL = Math.round((mvAdj / 1000) * 10) / 10;
 
         if (percent !== 100) {
-            mvAdjusted.classList.add("visible");
+            mvAdjusted.classList.remove("hidden");
             animateValue(mvAdjustedValue, mvAdj.toLocaleString());
             mvAdjustedLiter.textContent = mvAdjL.toFixed(1);
         } else {
-            mvAdjusted.classList.remove("visible");
+            mvAdjusted.classList.add("hidden");
         }
     }
 

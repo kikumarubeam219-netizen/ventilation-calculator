@@ -737,11 +737,6 @@ body {
   border-top: 1px solid rgba(251, 146, 60, 0.1);
   padding-top: 0.75rem;
   margin-top: 0.75rem;
-  display: none;
-}
-
-.mv-adjusted.visible {
-  display: block;
   animation: slide-up 0.3s ease;
 }
 
