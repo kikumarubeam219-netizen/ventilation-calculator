@@ -29,6 +29,13 @@
     const mvLiter = document.getElementById("mvLiter");
     const sliderValue = document.getElementById("sliderValue");
 
+    // MV%調整スライダー
+    const mvPercentSlider = document.getElementById("mvPercentSlider");
+    const mvPercentDisplay = document.getElementById("mvPercentDisplay");
+    const mvAdjusted = document.getElementById("mvAdjusted");
+    const mvAdjustedValue = document.getElementById("mvAdjustedValue");
+    const mvAdjustedLiter = document.getElementById("mvAdjustedLiter");
+
     // ===== 状態 =====
     let selectedGender = null; // "male" or "female"
 
@@ -45,6 +52,10 @@
         // スライダー値表示を更新
         sliderValue.textContent = heightInput.value;
         calculate();
+    });
+
+    mvPercentSlider.addEventListener("input", function () {
+        updateMvAdjustment();
     });
 
     // ===== 性別選択 =====
@@ -95,6 +106,36 @@
         // バーのラベルを更新
         tvBarMin.textContent = tvMinVal.toLocaleString() + " mL";
         tvBarMax.textContent = tvMaxVal.toLocaleString() + " mL";
+
+        // MV%調整を更新
+        updateMvAdjustment();
+    }
+
+    // ===== MV%調整 =====
+    function updateMvAdjustment() {
+        const percent = parseInt(mvPercentSlider.value);
+        mvPercentDisplay.textContent = percent + "%";
+
+        // 100%以外の場合はハイライト
+        mvPercentDisplay.classList.toggle("adjusted", percent !== 100);
+
+        if (!selectedGender) return;
+
+        const heightCm = parseFloat(heightInput.value);
+        const baseWeight = selectedGender === "male" ? 50 : 45.5;
+        const ibw = baseWeight + 0.91 * (heightCm - 152.4);
+        const mvBase = ibw * 100;
+
+        const mvAdj = Math.round(mvBase * percent / 100);
+        const mvAdjL = Math.round((mvAdj / 1000) * 10) / 10;
+
+        if (percent !== 100) {
+            mvAdjusted.classList.add("visible");
+            animateValue(mvAdjustedValue, mvAdj.toLocaleString());
+            mvAdjustedLiter.textContent = mvAdjL.toFixed(1);
+        } else {
+            mvAdjusted.classList.remove("visible");
+        }
     }
 
     // ===== 表示切替 =====

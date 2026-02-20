@@ -143,12 +143,41 @@
                             <span class="result-label">分時換気量 (MV)</span>
                             <span class="result-formula">IBW × 100 mL/min</span>
                         </div>
-                        <div class="result-value-wrapper">
-                            <span class="result-value" id="mvValue">--</span>
-                            <span class="result-unit">mL/min</span>
+                        <div class="mv-baseline">
+                            <span class="mv-baseline-label">適正値</span>
+                            <div class="result-value-wrapper">
+                                <span class="result-value mv-base-value" id="mvValue">--</span>
+                                <span class="result-unit">mL/min</span>
+                            </div>
+                            <div class="mv-liter">
+                                <span id="mvLiter">--</span> L/min
+                            </div>
                         </div>
-                        <div class="mv-liter">
-                            <span id="mvLiter">--</span> L/min
+                        <!-- %調整スライダー -->
+                        <div class="mv-adjust">
+                            <div class="mv-adjust-header">
+                                <span class="mv-adjust-label">調整</span>
+                                <span class="mv-percent-display" id="mvPercentDisplay">100%</span>
+                            </div>
+                            <div class="mv-slider-wrapper">
+                                <span class="slider-bound">50%</span>
+                                <input type="range" id="mvPercentSlider" class="mv-slider" min="50" max="150" step="5"
+                                    value="100" />
+                                <span class="slider-bound">150%</span>
+                            </div>
+                        </div>
+                        <!-- 調整後の値 -->
+                        <div class="mv-adjusted" id="mvAdjusted">
+                            <div class="mv-adjusted-header">
+                                <span class="mv-adjusted-label">調整後</span>
+                            </div>
+                            <div class="result-value-wrapper">
+                                <span class="result-value mv-adjusted-value" id="mvAdjustedValue">--</span>
+                                <span class="result-unit">mL/min</span>
+                            </div>
+                            <div class="mv-liter">
+                                <span id="mvAdjustedLiter">--</span> L/min
+                            </div>
                         </div>
                     </div>
                 </div>
