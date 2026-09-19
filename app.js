@@ -1,18 +1,153 @@
 /**
- * 換気設定最適化ツール
- * 実測 R・C・EtCO2 と Otis理論に基づく 適正分時換気量・Vt・呼吸回数の算出
+ * 人工呼吸設定アシスタント
+ * 基本モード (IBW & %MV計算) ＆ ASV力学最適化モード (実測R・C・EtCO2・吸気時間Ti算出)
  */
 
 (function () {
   "use strict";
 
-  // ===== DOM要素 =====
-  const btnMale = document.getElementById("btnMale");
-  const btnFemale = document.getElementById("btnFemale");
-  const heightSlider = document.getElementById("heightSlider");
-  const heightDisplay = document.getElementById("heightDisplay");
-  const ibwDisplay = document.getElementById("ibwDisplay");
-  const vdDisplay = document.getElementById("vdDisplay");
+  // ===== 共通状態 =====
+  const state = {
+    currentMode: "asv", // "basic" | "asv"
+    gender: "male",
+    height: 170,
+    ibw: 66.0,
+
+    // 基本モード用
+    basicPercent: 100,
+
+    // ASVモード用
+    etco2: 38,
+    r: 10,
+    c: 50
+  };
+
+  function calcIBW(gender, heightCm) {
+    const base = gender === "male" ? 50.0 : 45.5;
+    const ibw = base + 0.91 * (heightCm - 152.4);
+    return Math.round(ibw * 10) / 10;
+  }
+
+  // ===== タブ要素 =====
+  const tabBasic = document.getElementById("tabBasic");
+  const tabAsv = document.getElementById("tabAsv");
+  const viewBasic = document.getElementById("viewBasic");
+  const viewAsv = document.getElementById("viewAsv");
+
+  if (tabBasic && tabAsv) {
+    tabBasic.addEventListener("click", () => switchMode("basic"));
+    tabAsv.addEventListener("click", () => switchMode("asv"));
+  }
+
+  function switchMode(mode) {
+    state.currentMode = mode;
+    tabBasic.classList.toggle("active", mode === "basic");
+    tabAsv.classList.toggle("active", mode === "asv");
+
+    viewBasic.style.display = mode === "basic" ? "block" : "none";
+    viewAsv.style.display = mode === "asv" ? "block" : "none";
+
+    // 共通パラメータ同期
+    syncInputs();
+    if (mode === "basic") {
+      updateBasic();
+    } else {
+      updateAsv();
+    }
+  }
+
+  function syncInputs() {
+    bHeightSlider.value = state.height;
+    aHeightSlider.value = state.height;
+    bHeightDisplay.textContent = state.height;
+    aHeightDisplay.textContent = state.height;
+
+    bBtnMale.classList.toggle("active", state.gender === "male");
+    bBtnFemale.classList.toggle("active", state.gender === "female");
+    aBtnMale.classList.toggle("active", state.gender === "male");
+    aBtnFemale.classList.toggle("active", state.gender === "female");
+  }
+
+  // ==========================================
+  // 1. 基本モード (viewBasic) のロジック
+  // ==========================================
+  const bBtnMale = document.getElementById("bBtnMale");
+  const bBtnFemale = document.getElementById("bBtnFemale");
+  const bHeightSlider = document.getElementById("bHeightSlider");
+  const bHeightDisplay = document.getElementById("bHeightDisplay");
+  const bIbwDisplay = document.getElementById("bIbwDisplay");
+  const bTvMin = document.getElementById("bTvMin");
+  const bTvMax = document.getElementById("bTvMax");
+  const bMvBaseL = document.getElementById("bMvBaseL");
+  const bMvBaseMl = document.getElementById("bMvBaseMl");
+  const bPercentSlider = document.getElementById("bPercentSlider");
+  const bPercentDisplay = document.getElementById("bPercentDisplay");
+  const bAdjustedBox = document.getElementById("bAdjustedBox");
+  const bAdjustedL = document.getElementById("bAdjustedL");
+  const bAdjustedMl = document.getElementById("bAdjustedMl");
+
+  bBtnMale.addEventListener("click", () => {
+    state.gender = "male";
+    syncInputs();
+    updateBasic();
+  });
+  bBtnFemale.addEventListener("click", () => {
+    state.gender = "female";
+    syncInputs();
+    updateBasic();
+  });
+  bHeightSlider.addEventListener("input", (e) => {
+    state.height = parseInt(e.target.value, 10);
+    syncInputs();
+    updateBasic();
+  });
+  bPercentSlider.addEventListener("input", (e) => {
+    state.basicPercent = parseInt(e.target.value, 10);
+    updateBasic();
+  });
+
+  function updateBasic() {
+    state.ibw = calcIBW(state.gender, state.height);
+    bIbwDisplay.textContent = state.ibw.toFixed(1);
+
+    // TV: IBW × 6 〜 8 mL
+    const tvMin = Math.round(state.ibw * 6);
+    const tvMax = Math.round(state.ibw * 8);
+    bTvMin.textContent = tvMin;
+    bTvMax.textContent = tvMax;
+
+    // MV基準 (100%): IBW × 100 mL = 0.1 L/kg
+    const mvBaseL = Math.round(state.ibw * 0.1 * 10) / 10;
+    const mvBaseMl = Math.round(mvBaseL * 1000);
+    bMvBaseL.textContent = mvBaseL.toFixed(1);
+    bMvBaseMl.textContent = mvBaseMl.toLocaleString();
+
+    // %スライダー
+    bPercentDisplay.textContent = state.basicPercent + "%";
+    if (state.basicPercent !== 100) {
+      bAdjustedBox.style.display = "block";
+      const adjL = Math.round((mvBaseL * state.basicPercent / 100) * 10) / 10;
+      const adjMl = Math.round(adjL * 1000);
+      bAdjustedL.textContent = adjL.toFixed(1);
+      bAdjustedMl.textContent = adjMl.toLocaleString();
+    } else {
+      bAdjustedBox.style.display = "none";
+    }
+  }
+
+  // ==========================================
+  // 2. ASV・力学最適化モード (viewAsv) のロジック
+  // ==========================================
+  const aBtnMale = document.getElementById("aBtnMale");
+  const aBtnFemale = document.getElementById("aBtnFemale");
+  const aHeightSlider = document.getElementById("aHeightSlider");
+  const aHeightDisplay = document.getElementById("aHeightDisplay");
+  const aIbwDisplay = document.getElementById("aIbwDisplay");
+  const aTvRangeDisplay = document.getElementById("aTvRangeDisplay");
+
+  const presetNorm = document.getElementById("presetNorm");
+  const presetArds = document.getElementById("presetArds");
+  const presetCopd = document.getElementById("presetCopd");
 
   const etco2Slider = document.getElementById("etco2Slider");
   const etco2Display = document.getElementById("etco2Display");
@@ -23,10 +158,6 @@
   const cSlider = document.getElementById("cSlider");
   const cDisplay = document.getElementById("cDisplay");
 
-  const presetNorm = document.getElementById("presetNorm");
-  const presetArds = document.getElementById("presetArds");
-  const presetCopd = document.getElementById("presetCopd");
-
   const rcExpDisplay = document.getElementById("rcExpDisplay");
   const rcExpBadge = document.getElementById("rcExpBadge");
 
@@ -34,8 +165,13 @@
   const recMvMl = document.getElementById("recMvMl");
   const recVt = document.getElementById("recVt");
   const recVtPerKg = document.getElementById("recVtPerKg");
+  const recTvStdNote = document.getElementById("recTvStdNote");
   const recRr = document.getElementById("recRr");
   const recCycleTime = document.getElementById("recCycleTime");
+
+  const recTi = document.getElementById("recTi");
+  const recIeRatio = document.getElementById("recIeRatio");
+  const recTiNote = document.getElementById("recTiNote");
 
   const dpDisplay = document.getElementById("dpDisplay");
   const dpStatus = document.getElementById("dpStatus");
@@ -44,132 +180,97 @@
   const ctx = canvas ? canvas.getContext("2d") : null;
   const graphTargetVal = document.getElementById("graphTargetVal");
 
-  // ===== 状態 =====
-  const state = {
-    gender: "male",
-    height: 170,
-    ibw: 66.0,
-    etco2: 38,     // mmHg (標準 38)
-    r: 10,         // cmH2O/(L/s) (標準 10)
-    c: 50          // mL/cmH2O (標準 50)
-  };
+  aBtnMale.addEventListener("click", () => {
+    state.gender = "male";
+    syncInputs();
+    updateAsv();
+  });
+  aBtnFemale.addEventListener("click", () => {
+    state.gender = "female";
+    syncInputs();
+    updateAsv();
+  });
+  aHeightSlider.addEventListener("input", (e) => {
+    state.height = parseInt(e.target.value, 10);
+    syncInputs();
+    updateAsv();
+  });
 
-  // ===== イベント設定 =====
-  if (btnMale && btnFemale) {
-    btnMale.addEventListener("click", () => setGender("male"));
-    btnFemale.addEventListener("click", () => setGender("female"));
-  }
+  etco2Slider.addEventListener("input", (e) => {
+    state.etco2 = parseInt(e.target.value, 10);
+    clearPresets();
+    updateAsv();
+  });
+  rSlider.addEventListener("input", (e) => {
+    state.r = parseInt(e.target.value, 10);
+    clearPresets();
+    updateAsv();
+  });
+  cSlider.addEventListener("input", (e) => {
+    state.c = parseInt(e.target.value, 10);
+    clearPresets();
+    updateAsv();
+  });
 
-  if (heightSlider) {
-    heightSlider.addEventListener("input", (e) => {
-      state.height = parseInt(e.target.value, 10);
-      recalculate();
-    });
-  }
+  presetNorm.addEventListener("click", () => applyAsvPreset("norm", 38, 10, 50));
+  presetArds.addEventListener("click", () => applyAsvPreset("ards", 44, 12, 25));
+  presetCopd.addEventListener("click", () => applyAsvPreset("copd", 50, 22, 55));
 
-  if (etco2Slider) {
-    etco2Slider.addEventListener("input", (e) => {
-      state.etco2 = parseInt(e.target.value, 10);
-      clearPresetHighlight();
-      recalculate();
-    });
-  }
-
-  if (rSlider) {
-    rSlider.addEventListener("input", (e) => {
-      state.r = parseInt(e.target.value, 10);
-      clearPresetHighlight();
-      recalculate();
-    });
-  }
-
-  if (cSlider) {
-    cSlider.addEventListener("input", (e) => {
-      state.c = parseInt(e.target.value, 10);
-      clearPresetHighlight();
-      recalculate();
-    });
-  }
-
-  if (presetNorm) {
-    presetNorm.addEventListener("click", () => applyPreset("norm", 38, 10, 50));
-  }
-  if (presetArds) {
-    presetArds.addEventListener("click", () => applyPreset("ards", 44, 12, 25));
-  }
-  if (presetCopd) {
-    presetCopd.addEventListener("click", () => applyPreset("copd", 50, 22, 55));
-  }
-
-  function setGender(g) {
-    state.gender = g;
-    btnMale.classList.toggle("active", g === "male");
-    btnFemale.classList.toggle("active", g === "female");
-    recalculate();
-  }
-
-  function applyPreset(type, etco2, r, c) {
-    state.etco2 = etco2;
+  function applyAsvPreset(type, et, r, c) {
+    state.etco2 = et;
     state.r = r;
     state.c = c;
-
-    etco2Slider.value = etco2;
+    etco2Slider.value = et;
     rSlider.value = r;
     cSlider.value = c;
 
-    [presetNorm, presetArds, presetCopd].forEach(btn => {
-      if (btn) btn.classList.remove("active");
-    });
-    if (type === "norm" && presetNorm) presetNorm.classList.add("active");
-    if (type === "ards" && presetArds) presetArds.classList.add("active");
-    if (type === "copd" && presetCopd) presetCopd.classList.add("active");
+    [presetNorm, presetArds, presetCopd].forEach(btn => btn.classList.remove("active"));
+    if (type === "norm") presetNorm.classList.add("active");
+    if (type === "ards") presetArds.classList.add("active");
+    if (type === "copd") presetCopd.classList.add("active");
 
-    recalculate();
+    updateAsv();
   }
 
-  function clearPresetHighlight() {
-    [presetNorm, presetArds, presetCopd].forEach(btn => {
-      if (btn) btn.classList.remove("active");
-    });
+  function clearPresets() {
+    [presetNorm, presetArds, presetCopd].forEach(btn => btn.classList.remove("active"));
   }
 
-  // ===== 計算コア =====
-  function calcIBW(gender, heightCm) {
-    const base = gender === "male" ? 50.0 : 45.5;
-    const ibw = base + 0.91 * (heightCm - 152.4);
-    return Math.round(ibw * 10) / 10;
-  }
-
-  function recalculate() {
-    // 1. 患者基本パラメータ
+  function updateAsv() {
     state.ibw = calcIBW(state.gender, state.height);
-    const vdMl = Math.round(2.2 * state.ibw); // 解剖学的死腔量 [mL]
-    const vdL = vdMl / 1000; // [L]
-    const baseMvL = state.ibw * 0.1; // 基準換気量 (100%時: 0.1 L/kg)
+    const vdMl = Math.round(2.2 * state.ibw);
+    const vdL = vdMl / 1000;
+    const baseMvL = state.ibw * 0.1;
 
-    // 2. EtCO2 による適正分時換気量補正
-    // 目標 EtCO2 を 38 mmHg とし、分時換気量とEtCO2の反比例平衡モデルを適用
-    const targetEtCO2 = 38;
-    const etco2Ratio = state.etco2 / targetEtCO2;
-    // 極端な外れ値をクランプ (60% 〜 220%)
-    const clampedRatio = Math.max(0.6, Math.min(2.2, etco2Ratio));
+    // 理想体重 × 6〜8 mL
+    const stdTvMin = Math.round(state.ibw * 6);
+    const stdTvMax = Math.round(state.ibw * 8);
+
+    aIbwDisplay.textContent = state.ibw.toFixed(1);
+    aTvRangeDisplay.textContent = `${stdTvMin} 〜 ${stdTvMax}`;
+    recTvStdNote.textContent = `${stdTvMin}〜${stdTvMax}`;
+
+    // EtCO2 補正 (目標 38)
+    const targetEt = 38;
+    const etRatio = state.etco2 / targetEt;
+    const clampedRatio = Math.max(0.6, Math.min(2.2, etRatio));
     const targetMvL = Math.round(baseMvL * clampedRatio * 10) / 10;
     const targetMvMl = Math.round(targetMvL * 1000);
 
-    // 3. 呼気時定数 RCexp
-    const rcExpSec = (state.r * (state.c / 1000)); // [秒]
+    // 呼気時定数 RCexp
+    const rcExpSec = (state.r * (state.c / 1000));
     const rcExpRounded = Math.round(rcExpSec * 100) / 100;
 
-    // 4. Otisの式による最適呼吸数 (f_opt) & 最適Vt
-    const a = 0.33; // 正弦波呼吸パターン係数
+    // Otis式による最適呼吸数
+    const a = 0.33;
     const num = Math.sqrt(1 + 4 * a * rcExpSec * (targetMvL / vdL)) - 1;
     const denom = 2 * a * (rcExpSec / 60);
     let optF = Math.round(num / (denom * 60));
 
-    // 安全枠（セーフティーリミット）
-    const minF = 5; // 下限
-    const maxF = Math.min(48, Math.round(20 / rcExpSec)); // 上限 (Auto-PEEP防止)
-    const minVt = Math.round(4.4 * state.ibw); // 死腔2倍
+    // 安全枠
+    const minF = 5;
+    const maxF = Math.min(48, Math.round(20 / rcExpSec));
+    const minVt = Math.round(4.4 * state.ibw);
     const maxVt = Math.round(Math.min(15.4 * state.ibw, targetMvMl / 5));
 
     if (isNaN(optF) || optF < minF) optF = minF + 2;
@@ -180,35 +281,56 @@
     if (optVt > maxVt) optVt = maxVt;
 
     const optVtPerKg = (optVt / state.ibw).toFixed(1);
-    const cycleTime = (60 / optF).toFixed(1);
+    const tTotal = 60 / optF; // 1呼吸の全周期 [秒]
 
-    // 5. 駆動圧 (Driving Pressure: ΔP = Vt / C)
+    // ==========================================
+    // 吸気時間 (Ti) & 呼気時間 (Te) の決定ロジック
+    // ==========================================
+    // 呼気時間はエアートラッピング防止のため Te >= 2.0 * RCexp が必要
+    // 病態ごとの時間配分比率:
+    let tiRatio;
+    if (rcExpRounded < 0.50) {
+      // ARDS・硬い肺: 時定数が短く酸素化重視 -> I:E ≈ 1:1.5
+      tiRatio = 1 / 2.5; // 40%
+    } else if (rcExpRounded > 0.85) {
+      // COPD・閉塞性: 呼気時間を最長化 -> I:E ≈ 1:3.5
+      tiRatio = 1 / 4.5; // 22%
+    } else {
+      // 正常肺: 標準 I:E ≈ 1:2.0
+      tiRatio = 1 / 3.0; // 33%
+    }
+
+    let calcTi = tTotal * tiRatio;
+    // 最小吸気時間は 1 * RCexp を担保
+    if (calcTi < rcExpSec) calcTi = rcExpSec;
+    // 最大吸気時間ガード (成人では通常 1.5s 以下)
+    if (calcTi > 1.5) calcTi = 1.5;
+    if (calcTi < 0.6) calcTi = 0.6;
+
+    const calcTe = tTotal - calcTi;
+    const ieRatioVal = (calcTe / calcTi).toFixed(1);
+
+    // 駆動圧 (Driving Pressure)
     const drivingPressure = Math.round((optVt / state.c) * 10) / 10;
 
-    // ===== UI更新 =====
-    heightDisplay.textContent = state.height;
-    ibwDisplay.textContent = state.ibw.toFixed(1);
-    vdDisplay.textContent = vdMl;
-
+    // 表示更新
     etco2Display.textContent = state.etco2;
     rDisplay.textContent = state.r;
     cDisplay.textContent = state.c;
 
-    // EtCO2 フィードバックメッセージ
     if (state.etco2 > 45) {
       const pct = Math.round((clampedRatio - 1) * 100);
       etco2Feedback.textContent = `高炭酸ガス血症傾向（換気要求量: +${pct}% 補正）`;
       etco2Feedback.style.color = "#fbbf24";
     } else if (state.etco2 < 32) {
       const pct = Math.round((1 - clampedRatio) * 100);
-      etco2Feedback.textContent = `過換気・低炭酸ガス傾向（換気要求量: -${pct}% 補正）`;
+      etco2Feedback.textContent = `過換気傾向（換気要求量: -${pct}% 補正）`;
       etco2Feedback.style.color = "#38bdf8";
     } else {
       etco2Feedback.textContent = `EtCO2は適正範囲内です（換気要求比: ${Math.round(clampedRatio * 100)}%）`;
       etco2Feedback.style.color = "var(--text-dim)";
     }
 
-    // RCexp バッジ
     rcExpDisplay.textContent = rcExpRounded.toFixed(2);
     if (rcExpRounded < 0.50) {
       rcExpBadge.textContent = "拘束性・硬い肺 (ARDS等)";
@@ -227,15 +349,19 @@
       rcExpBadge.style.background = "rgba(45, 212, 191, 0.12)";
     }
 
-    // 推奨設定値 (メインカード)
+    // 4連推奨カード
     recMvL.textContent = targetMvL.toFixed(1);
     recMvMl.textContent = targetMvMl.toLocaleString();
     recVt.textContent = optVt;
     recVtPerKg.textContent = optVtPerKg;
     recRr.textContent = optF;
-    recCycleTime.textContent = cycleTime;
+    recCycleTime.textContent = tTotal.toFixed(1);
 
-    // Driving Pressure
+    recTi.textContent = calcTi.toFixed(2);
+    recIeRatio.textContent = `1 : ${ieRatioVal}`;
+    recTiNote.textContent = `呼気 Te: ${calcTe.toFixed(2)}s (≥ ${(2 * rcExpSec).toFixed(2)}s)`;
+
+    // 駆動圧
     dpDisplay.textContent = drivingPressure.toFixed(1);
     if (drivingPressure <= 14.0) {
       dpStatus.textContent = "良好 (≤ 14 cmH2O)";
@@ -248,12 +374,11 @@
       dpStatus.className = "safety-status status-danger";
     }
 
-    // グラフ目標値テキスト
     if (graphTargetVal) {
       graphTargetVal.textContent = `${optF} bpm / ${optVt} mL (${optVtPerKg} mL/kg)`;
     }
 
-    // 6. Canvas描画
+    // Canvas描画
     if (ctx) {
       drawASVGraph(minF, maxF, minVt, maxVt, targetMvMl, optF, optVt);
     }
@@ -272,8 +397,8 @@
     const plotW = w - padL - padR;
     const plotH = h - padT - padB;
 
-    const axisMaxF = 50;   // bpm
-    const axisMaxVt = 1100; // mL
+    const axisMaxF = 50;
+    const axisMaxVt = 1100;
 
     function toX(f) { return padL + (f / axisMaxF) * plotW; }
     function toY(vt) { return padT + plotH - (vt / axisMaxVt) * plotH; }
@@ -359,7 +484,6 @@
     const ptX = toX(optF);
     const ptY = toY(optVt);
 
-    // 十字ガイド線
     ctx.strokeStyle = "rgba(251, 191, 36, 0.35)";
     ctx.lineWidth = 1;
     ctx.setLineDash([3, 3]);
@@ -371,7 +495,6 @@
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // 外側グロウ
     ctx.shadowColor = "rgba(251, 191, 36, 0.9)";
     ctx.shadowBlur = 14;
     ctx.fillStyle = "#fbbf24";
@@ -380,7 +503,6 @@
     ctx.fill();
     ctx.shadowBlur = 0;
 
-    // 白枠リング
     ctx.strokeStyle = "#ffffff";
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -388,6 +510,7 @@
     ctx.stroke();
   }
 
-  // 初期計算実行
-  recalculate();
+  // 初期化実行
+  updateBasic();
+  updateAsv();
 })();
