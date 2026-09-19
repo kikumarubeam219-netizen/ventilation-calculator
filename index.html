@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=2.0.0" />
 </head>
 <body>
   <div class="app-container">
@@ -291,6 +291,25 @@
     </footer>
   </div>
 
-  <script src="app.js"></script>
+      <!-- 旧キャッシュ混在対策用フォールバック要素 -->
+    <div style="display:none;" id="placeholder"></div>
+    <div style="display:none;" id="resultsGrid"></div>
+    <input type="hidden" id="heightInput" value="170" />
+    <span style="display:none;" id="ibwValue"></span>
+    <span style="display:none;" id="tvMin"></span>
+    <span style="display:none;" id="tvMax"></span>
+    <span style="display:none;" id="tvBarMin"></span>
+    <span style="display:none;" id="tvBarMax"></span>
+    <span style="display:none;" id="mvValue"></span>
+    <span style="display:none;" id="mvLiter"></span>
+    <span style="display:none;" id="sliderValue"></span>
+    <input type="hidden" id="mvPercentSlider" value="100" />
+    <span style="display:none;" id="mvPercentDisplay"></span>
+    <div style="display:none;" id="mvAdjusted"></div>
+    <span style="display:none;" id="mvAdjustedValue"></span>
+    <span style="display:none;" id="mvAdjustedLiter"></span>
+    <script src="app.js?v=20260919_2"></script>
 </body>
 </html>
+
+
