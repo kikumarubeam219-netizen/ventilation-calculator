@@ -1,274 +1,296 @@
 <!DOCTYPE html>
 <html lang="ja">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>換気量計算ツール</title>
-    <meta name="description" content="患者の適正体重から一回換気量・分時換気量を自動計算するツールです。" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet" />
-    <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ASV 換気設定シミュレーター | Adaptive Support Ventilation</title>
+  <meta name="description" content="Hamilton MedicalのASV（Adaptive Support Ventilation）アルゴリズムに基づき、理想体重、目標分時換気量、セーフティーフレーム、最適換気パターンをシミュレーション・算出する臨床支援ツールです。" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
-    <div class="app-container">
-        <!-- ヘッダー -->
-        <header class="header">
-            <div class="header-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
-                    stroke-linejoin="round">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" />
-                    <path d="M12 6v6l4 2" />
-                </svg>
+  <div class="app-container">
+    <!-- ヘッダー -->
+    <header class="header">
+      <div class="header-badge">Hamilton ASV アルゴリズム準拠</div>
+      <h1>ASV 換気設定シミュレーター</h1>
+      <p class="header-subtitle">Adaptive Support Ventilation & セーフティーフレーム解析</p>
+    </header>
+
+    <!-- メインカード -->
+    <main class="main-card">
+      <!-- 1. 患者情報（IBW算出） -->
+      <section class="card-section">
+        <div class="section-header">
+          <span class="step-num">1</span>
+          <h2>患者基本情報 & 理想体重 (IBW)</h2>
+        </div>
+
+        <div class="gender-selector">
+          <button class="gender-btn active" id="btnMale" type="button">
+            <span class="gender-icon">♂</span>
+            <span class="gender-text">男性</span>
+          </button>
+          <button class="gender-btn" id="btnFemale" type="button">
+            <span class="gender-icon">♀</span>
+            <span class="gender-text">女性</span>
+          </button>
+        </div>
+
+        <div class="slider-box">
+          <div class="slider-info">
+            <span class="slider-title">患者身長</span>
+            <div class="slider-readout">
+              <span class="readout-num" id="heightDisplay">170</span>
+              <span class="readout-unit">cm</span>
             </div>
-            <h1>換気量計算ツール</h1>
-            <p class="header-subtitle">適正体重に基づく一回換気量・分時換気量の算出</p>
-        </header>
+          </div>
+          <div class="range-wrapper">
+            <span class="bound-text">140</span>
+            <input type="range" id="heightSlider" class="custom-range" min="140" max="200" value="170" step="1" />
+            <span class="bound-text">200</span>
+          </div>
+        </div>
 
-        <!-- メインカード -->
-        <main class="main-card">
-            <!-- 入力セクション -->
-            <section class="input-section">
-                <h2 class="section-title">
-                    <span class="section-icon">📋</span>
-                    患者情報の入力
-                </h2>
-
-                <!-- 性別選択 -->
-                <div class="input-group">
-                    <label class="input-label">性別</label>
-                    <div class="gender-selector" id="genderSelector">
-                        <button class="gender-btn" data-gender="male" id="btnMale" type="button">
-                            <span class="gender-icon">♂</span>
-                            <span class="gender-text">男性</span>
-                        </button>
-                        <button class="gender-btn" data-gender="female" id="btnFemale" type="button">
-                            <span class="gender-icon">♀</span>
-                            <span class="gender-text">女性</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- 身長入力（スライダー） -->
-                <div class="input-group">
-                    <label class="input-label">身長</label>
-                    <div class="slider-display">
-                        <span class="slider-value" id="sliderValue">165</span>
-                        <span class="slider-value-unit">cm</span>
-                    </div>
-                    <div class="slider-wrapper">
-                        <span class="slider-bound">100</span>
-                        <input type="range" id="heightInput" class="height-slider" min="100" max="200" step="1"
-                            value="165" />
-                        <span class="slider-bound">200</span>
-                    </div>
-                </div>
-            </section>
-
-            <!-- 区切り線 -->
-            <div class="divider">
-                <div class="divider-line"></div>
-                <span class="divider-icon">▼</span>
-                <div class="divider-line"></div>
+        <!-- IBW & 基準分時換気量 算出結果バッジ -->
+        <div class="calc-strip">
+          <div class="strip-item">
+            <span class="strip-label">理想体重 (IBW)</span>
+            <div class="strip-val-wrap">
+              <span class="strip-val" id="ibwDisplay">66.0</span>
+              <span class="strip-unit">kg</span>
             </div>
+          </div>
+          <div class="strip-divider"></div>
+          <div class="strip-item">
+            <span class="strip-label">基準換気量 (100%時)</span>
+            <div class="strip-val-wrap">
+              <span class="strip-val text-sky" id="baseMvDisplay">6.6</span>
+              <span class="strip-unit">L/min (0.1 L/kg)</span>
+            </div>
+          </div>
+        </div>
+      </section>
 
-            <!-- 結果セクション -->
-            <section class="result-section" id="resultSection">
-                <h2 class="section-title">
-                    <span class="section-icon">📊</span>
-                    計算結果
-                </h2>
+      <!-- 2. 目標分時換気量 (%MinVol) -->
+      <section class="card-section">
+        <div class="section-header">
+          <span class="step-num">2</span>
+          <h2>目標分時換気量 (%MinVol)</h2>
+          <span class="formula-tag">目標MV = IBW × 0.1 × %MinVol</span>
+        </div>
 
-                <!-- 空のプレースホルダー -->
-                <div class="placeholder" id="placeholder">
-                    <div class="placeholder-icon">⚙️</div>
-                    <p>性別と身長を入力すると<br />計算結果が表示されます</p>
-                </div>
+        <div class="slider-box">
+          <div class="slider-info">
+            <span class="slider-title">換気要求量 (%MinVol)</span>
+            <div class="slider-readout text-amber">
+              <span class="readout-num" id="minVolDisplay">100</span>
+              <span class="readout-unit">%</span>
+            </div>
+          </div>
+          <div class="range-wrapper">
+            <span class="bound-text">25%</span>
+            <input type="range" id="minVolSlider" class="custom-range range-amber" min="25" max="350" value="100" step="5" />
+            <span class="bound-text">350%</span>
+          </div>
+        </div>
 
-                <!-- 結果カード -->
-                <div class="results-grid" id="resultsGrid" style="display:none;">
-                    <!-- 適正体重 -->
-                    <div class="result-card ibw-card">
-                        <div class="result-header">
-                            <span class="result-label">適正体重 (IBW)</span>
-                            <span class="result-formula" id="ibwFormula">Devine式</span>
-                        </div>
-                        <div class="result-value-wrapper">
-                            <span class="result-value" id="ibwValue">--</span>
-                            <span class="result-unit">kg</span>
-                        </div>
-                    </div>
+        <!-- プリセットボタン -->
+        <div class="preset-group">
+          <span class="preset-label">病態プリセット:</span>
+          <div class="preset-buttons">
+            <button type="button" class="preset-btn active" data-mv="100" id="presetNorm">正常 (100%)</button>
+            <button type="button" class="preset-btn" data-mv="120" id="presetArds">ARDS (120%)</button>
+            <button type="button" class="preset-btn" data-mv="90" id="presetCopd">COPD (90%)</button>
+            <button type="button" class="preset-btn add-btn" data-add="20" id="btnAddFever">+発熱 (+20%)</button>
+            <button type="button" class="preset-btn add-btn" data-add="10" id="btnAddHme">+人工鼻 (+10%)</button>
+          </div>
+        </div>
 
-                    <!-- 一回換気量 -->
-                    <div class="result-card tv-card">
-                        <div class="result-header">
-                            <span class="result-label">一回換気量 (TV)</span>
-                            <span class="result-formula">IBW × 6〜8 mL/kg</span>
-                        </div>
-                        <div class="result-range">
-                            <div class="range-item">
-                                <span class="range-label">最小 (×6)</span>
-                                <div class="range-value-wrapper">
-                                    <span class="range-value" id="tvMin">--</span>
-                                    <span class="range-unit">mL</span>
-                                </div>
-                            </div>
-                            <div class="range-separator">〜</div>
-                            <div class="range-item">
-                                <span class="range-label">最大 (×8)</span>
-                                <div class="range-value-wrapper">
-                                    <span class="range-value" id="tvMax">--</span>
-                                    <span class="range-unit">mL</span>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- バー表示 -->
-                        <div class="tv-bar-container">
-                            <div class="tv-bar" id="tvBar">
-                                <div class="tv-bar-fill" id="tvBarFill"></div>
-                            </div>
-                            <div class="tv-bar-labels">
-                                <span id="tvBarMin"></span>
-                                <span id="tvBarMax"></span>
-                            </div>
-                        </div>
-                    </div>
+        <!-- 目標MV表示カード -->
+        <div class="target-mv-card">
+          <div class="target-mv-left">
+            <span class="target-mv-title">現在の目標分時換気量 (Target MinVol)</span>
+            <div class="target-mv-nums">
+              <span class="target-mv-main" id="targetMvDisplay">6.6</span>
+              <span class="target-mv-unit">L/min</span>
+              <span class="target-mv-sub">(<span id="targetMvMlDisplay">6,600</span> mL/min)</span>
+            </div>
+          </div>
+        </div>
 
-                    <!-- 分時換気量 -->
-                    <div class="result-card mv-card">
-                        <div class="result-header">
-                            <span class="result-label">分時換気量 (MV)</span>
-                            <span class="result-formula">IBW × 100 mL/min</span>
-                        </div>
-                        <div class="mv-baseline">
-                            <span class="mv-baseline-label">適正値</span>
-                            <div class="result-value-wrapper">
-                                <span class="result-value mv-base-value" id="mvValue">--</span>
-                                <span class="result-unit">mL/min</span>
-                            </div>
-                            <div class="mv-liter">
-                                <span id="mvLiter">--</span> L/min
-                            </div>
-                        </div>
-                        <!-- %調整スライダー -->
-                        <div class="mv-adjust">
-                            <div class="mv-adjust-header">
-                                <span class="mv-adjust-label">調整</span>
-                                <span class="mv-percent-display" id="mvPercentDisplay">100%</span>
-                            </div>
-                            <div class="mv-slider-wrapper">
-                                <span class="slider-bound">10%</span>
-                                <input type="range" id="mvPercentSlider" class="mv-slider" min="10" max="400" step="5"
-                                    value="100" />
-                                <span class="slider-bound">400%</span>
-                            </div>
-                            <!-- 目安テーブル -->
-                            <details class="ref-table-toggle">
-                                <summary class="ref-table-summary">📖 病態別の目安を見る</summary>
-                                <div class="ref-table-wrapper">
-                                    <table class="ref-table">
-                                        <thead>
-                                            <tr>
-                                                <th>状態・病態</th>
-                                                <th>目安 (%)</th>
-                                                <th>備考</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr class="ref-row-high">
-                                                <td>痙攣・てんかん重積</td>
-                                                <td>200〜300%以上</td>
-                                                <td>著明な筋活動の亢進</td>
-                                            </tr>
-                                            <tr class="ref-row-high">
-                                                <td>シバリング</td>
-                                                <td>150〜300%</td>
-                                                <td>TTM導入・復温時に注意</td>
-                                            </tr>
-                                            <tr class="ref-row-high">
-                                                <td>重症熱傷</td>
-                                                <td>150〜200%</td>
-                                                <td>ハイパーメタボリズム</td>
-                                            </tr>
-                                            <tr class="ref-row-high">
-                                                <td>敗血症・SIRS</td>
-                                                <td>120〜160%</td>
-                                                <td>炎症反応による代謝亢進</td>
-                                            </tr>
-                                            <tr class="ref-row-high">
-                                                <td>呼吸仕事量の増大</td>
-                                                <td>120〜150%</td>
-                                                <td>努力様呼吸、非同調</td>
-                                            </tr>
-                                            <tr class="ref-row-mid">
-                                                <td>発熱</td>
-                                                <td>110〜130%</td>
-                                                <td>1℃上昇毎に約10-13%↑</td>
-                                            </tr>
-                                            <tr class="ref-row-mid">
-                                                <td>不穏・せん妄</td>
-                                                <td>110〜130%</td>
-                                                <td>交感神経緊張、体動↑</td>
-                                            </tr>
-                                            <tr class="ref-row-base">
-                                                <td>安静時（基準）</td>
-                                                <td>100%</td>
-                                                <td>健常成人の安静時</td>
-                                            </tr>
-                                            <tr class="ref-row-low">
-                                                <td>鎮静・鎮痛下</td>
-                                                <td>80〜90%</td>
-                                                <td>筋活動低下、交感神経↓</td>
-                                            </tr>
-                                            <tr class="ref-row-low">
-                                                <td>筋弛緩薬投与下</td>
-                                                <td>70〜80%</td>
-                                                <td>骨格筋の活動完全停止</td>
-                                            </tr>
-                                            <tr class="ref-row-low">
-                                                <td>脳死・深昏睡</td>
-                                                <td>70〜80%</td>
-                                                <td>脳の代謝活動の著しい低下</td>
-                                            </tr>
-                                            <tr class="ref-row-low">
-                                                <td>低体温(32-34℃)</td>
-                                                <td>50〜70%</td>
-                                                <td>1℃低下毎に約7-10%↓</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </details>
-                        </div>
-                        <!-- 調整後の値 -->
-                        <div class="mv-adjusted" id="mvAdjusted" style="display:none;">
-                            <div class="mv-adjusted-header">
-                                <span class="mv-adjusted-label">調整後</span>
-                            </div>
-                            <div class="result-value-wrapper">
-                                <span class="result-value mv-adjusted-value" id="mvAdjustedValue">--</span>
-                                <span class="result-unit">mL/min</span>
-                            </div>
-                            <div class="mv-liter">
-                                <span id="mvAdjustedLiter">--</span> L/min
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </main>
+        <!-- アコーディオン: 病態別酸素消費量目安 -->
+        <details class="ref-accordion">
+          <summary class="ref-summary">📖 病態別の酸素消費量・代謝目安を見る</summary>
+          <div class="ref-content">
+            <table class="ref-table">
+              <thead>
+                <tr>
+                  <th>状態・病態</th>
+                  <th>酸素消費量目安</th>
+                  <th>主な要因・備考</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="row-danger">
+                  <td>痙攣・てんかん重積</td>
+                  <td>200 〜 300%以上</td>
+                  <td>著明な筋活動の亢進</td>
+                </tr>
+                <tr class="row-danger">
+                  <td>シバリング</td>
+                  <td>150 〜 300%</td>
+                  <td>TTM導入・復温時に注意</td>
+                </tr>
+                <tr class="row-danger">
+                  <td>重症熱傷</td>
+                  <td>150 〜 200%</td>
+                  <td>ハイパーメタボリズム</td>
+                </tr>
+                <tr class="row-warn">
+                  <td>敗血症・SIRS</td>
+                  <td>120 〜 160%</td>
+                  <td>炎症反応による代謝亢進</td>
+                </tr>
+                <tr class="row-warn">
+                  <td>呼吸仕事量の増大</td>
+                  <td>120 〜 150%</td>
+                  <td>努力様呼吸、非同調</td>
+                </tr>
+                <tr class="row-warn">
+                  <td>発熱</td>
+                  <td>110 〜 130%</td>
+                  <td>体温1℃上昇毎に約10-13%↑</td>
+                </tr>
+                <tr class="row-warn">
+                  <td>不穏・せん妄</td>
+                  <td>110 〜 130%</td>
+                  <td>交感神経緊張、体動↑</td>
+                </tr>
+                <tr class="row-base">
+                  <td>安静時（基準）</td>
+                  <td>100%</td>
+                  <td>健常成人の安静時</td>
+                </tr>
+                <tr class="row-low">
+                  <td>鎮静・鎮痛下</td>
+                  <td>80 〜 90%</td>
+                  <td>筋活動低下、交感神経抑制</td>
+                </tr>
+                <tr class="row-low">
+                  <td>筋弛緩薬投与下</td>
+                  <td>70 〜 80%</td>
+                  <td>骨格筋の活動完全停止</td>
+                </tr>
+                <tr class="row-low">
+                  <td>脳死・深昏睡</td>
+                  <td>70 〜 80%</td>
+                  <td>脳代謝活動の著しい低下</td>
+                </tr>
+                <tr class="row-low">
+                  <td>低体温 (32-34℃)</td>
+                  <td>50 〜 70%</td>
+                  <td>体温1℃低下毎に約7-10%↓</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </details>
+      </section>
 
-        <!-- フッター -->
-        <footer class="footer">
-            <p>※ 適正体重はDevine式で算出しています</p>
-            <p>※ 臨床判断は必ず医師の判断に基づいてください</p>
-        </footer>
-    </div>
+      <!-- 3. 肺メカニクス & ASVグラフィック画面 -->
+      <section class="card-section">
+        <div class="section-header">
+          <span class="step-num">3</span>
+          <h2>ASVグラフィック (セーフティーフレーム & 目標点)</h2>
+        </div>
 
-    <script src="app.js"></script>
+        <!-- 肺メカニクス切替 -->
+        <div class="mechanics-bar">
+          <span class="mech-label">肺メカニクス:</span>
+          <div class="mech-buttons">
+            <button type="button" class="mech-btn active" id="mechNormal">正常 (RCexp 0.6s)</button>
+            <button type="button" class="mech-btn" id="mechArds">ARDS (硬い肺 0.3s)</button>
+            <button type="button" class="mech-btn" id="mechCopd">COPD (閉塞 1.2s)</button>
+          </div>
+        </div>
+
+        <!-- Canvasグラフィック -->
+        <div class="canvas-wrapper">
+          <canvas id="asvCanvas" width="560" height="280"></canvas>
+          <div class="canvas-legend">
+            <div class="legend-pill">
+              <span class="legend-dot target-dot"></span>
+              <span class="legend-label">目標点 (Otis最適点):</span>
+              <span class="legend-val" id="graphTargetVal">--</span>
+            </div>
+            <div class="legend-pill">
+              <span class="legend-line frame-line"></span>
+              <span class="legend-label">セーフティーフレーム (安全枠)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 安全限界値の内訳カード -->
+        <div class="limits-grid">
+          <div class="limit-box">
+            <span class="limit-title">一回換気量 (Vt) 範囲</span>
+            <div class="limit-val">
+              <span id="limitMinVt">--</span> 〜 <span id="limitMaxVt">--</span> <span class="unit">mL</span>
+            </div>
+            <span class="limit-sub">下限: 死腔2倍 / 上限: 15.4×IBW</span>
+          </div>
+          <div class="limit-box">
+            <span class="limit-title">強制呼吸数 (f) 範囲</span>
+            <div class="limit-val">
+              <span id="limitMinF">5</span> 〜 <span id="limitMaxF">--</span> <span class="unit">回/分</span>
+            </div>
+            <span class="limit-sub">下限: 5bpm / 上限: 20/RCexp</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. 推奨初期設定 (Hamiltonガイドライン) -->
+      <section class="card-section">
+        <div class="section-header">
+          <span class="step-num">4</span>
+          <h2>推奨初期設定 (Hamiltonガイドライン)</h2>
+        </div>
+
+        <div class="settings-grid">
+          <div class="setting-item">
+            <span class="setting-label">高圧アラーム (Pmax)</span>
+            <span class="setting-val" id="pmaxVal">40</span>
+            <span class="setting-unit">cmH2O</span>
+          </div>
+          <div class="setting-item highlight-border">
+            <span class="setting-label">ASVリミット圧</span>
+            <span class="setting-val text-amber" id="pasvVal">30</span>
+            <span class="setting-unit">cmH2O (Pmax - 10)</span>
+          </div>
+          <div class="setting-item">
+            <span class="setting-label">推奨 PEEP</span>
+            <span class="setting-val text-teal">5</span>
+            <span class="setting-unit">cmH2O</span>
+          </div>
+          <div class="setting-item">
+            <span class="setting-label">推奨 FiO2</span>
+            <span class="setting-val text-sky">50</span>
+            <span class="setting-unit">%</span>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- フッター -->
+    <footer class="footer">
+      <p>※ 本シミュレーターは Hamilton Medical ASV（Adaptive Support Ventilation）のアルゴリズム公開資料に基づいて設計されています。</p>
+      <p>※ 実際の人工呼吸器設定や臨床判断は、必ず医師の指示および患者の病態・血液ガス分析に基づいて行ってください。</p>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
 </body>
-
 </html>
