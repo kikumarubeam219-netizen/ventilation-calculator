@@ -4,11 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>人工呼吸設定アシスタント | 基本換気量 & ASV力学最適化</title>
-  <meta name="description" content="基本換気量計算（IBW・%MV調整）と、実測R・C・EtCO2に基づくASV力学最適化（Otisの式・吸気時間Ti・セーフティーフレーム）の2つのモードを備えた臨床支援アプリ。" />
+  <meta name="description" content="基本換気量計算（IBW・%MV調整）と、実測R・C・EtCO2に基づくASV力学最適化・手動連動シミュレーション（Otis理論・吸気時間Ti・セーフティーフレーム）の臨床支援アプリ。" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=20260919_5" />
+  <link rel="stylesheet" href="style.css?v=20260920_1" />
 </head>
 <body>
   <div class="app-container">
@@ -31,7 +31,7 @@
     </header>
 
     <!-- ==============================================
-         モード 1: 基本モード (変更前の画面仕様)
+         モード 1: 基本モード (以前の画面仕様)
          ============================================== -->
     <div id="viewBasic" class="view-panel" style="display: none;">
       <main class="main-card">
@@ -357,55 +357,90 @@
           </div>
         </section>
 
-        <!-- 3. 【最重要】人工呼吸器 推奨設定 出力パネル -->
+        <!-- 3. 【最重要】設定シミュレーション & 推奨値パネル -->
         <section class="card-section highlight-section">
           <div class="section-header">
-            <span class="step-num bg-amber">3</span>
-            <h2>推奨換気設定 (人工呼吸器への入力推奨値)</h2>
-            <span class="formula-tag text-amber">Otis最小仕事量 & 時定数解析</span>
+            <div class="header-left">
+              <span class="step-num bg-amber">3</span>
+              <h2>設定シミュレーション & 推奨換気量</h2>
+            </div>
+            <button type="button" class="btn-reset-rec" id="btnResetToRec" title="Otis理論による推奨値にリセットします">
+              🔄 推奨値にリセット
+            </button>
           </div>
+          <p class="section-lead">
+            各スライダーを動かして自由に変更できます（MV・Vt・RR・Tiが相互に自動連動し、グラフィックも追従します）。
+          </p>
 
-          <!-- 4連推奨グリッド (MV, Vt, RR, 吸気時間Ti) -->
+          <!-- 4連コントロールカード (MV, Vt, RR, Ti) -->
           <div class="recommend-grid-4">
-            <!-- ① 目標分時換気量 (Target MV) -->
+            <!-- ① 分時換気量 (MV) -->
             <div class="rec-card card-mv">
-              <span class="rec-label">① 適正 分時換気量 (MV)</span>
+              <div class="rec-card-top">
+                <span class="rec-label">① 分時換気量 (MV)</span>
+                <span class="rec-pill pill-amber" id="pillRecMv">推奨 6.6</span>
+              </div>
               <div class="rec-val-wrap">
                 <span class="rec-val" id="recMvL">6.6</span>
                 <span class="rec-unit">L/min</span>
               </div>
+              <!-- MV操作スライダー -->
+              <div class="card-slider-wrap">
+                <input type="range" id="setMvSlider" class="custom-range range-amber" min="2.0" max="22.0" step="0.1" value="6.6" />
+              </div>
               <div class="rec-sub"><span id="recMvMl">6,600</span> mL/min</div>
-              <div class="rec-note">IBW基準 × EtCO2補正</div>
+              <div class="rec-note text-amber">動かすとVt・RR・Tiが自動追従</div>
             </div>
 
-            <!-- ② 推奨 一回換気量 (Vt) -->
+            <!-- ② 一回換気量 (Vt) -->
             <div class="rec-card card-vt">
-              <span class="rec-label">② 推奨 一回換気量 (Vt)</span>
+              <div class="rec-card-top">
+                <span class="rec-label">② 一回換気量 (Vt)</span>
+                <span class="rec-pill pill-sky" id="pillRecVt">推奨 470</span>
+              </div>
               <div class="rec-val-wrap">
                 <span class="rec-val text-sky" id="recVt">470</span>
                 <span class="rec-unit">mL</span>
+              </div>
+              <!-- Vt操作スライダー -->
+              <div class="card-slider-wrap">
+                <input type="range" id="setVtSlider" class="custom-range" min="200" max="950" step="10" value="470" />
               </div>
               <div class="rec-sub"><span id="recVtPerKg">7.1</span> mL/kg IBW</div>
               <div class="rec-note">基準 (×6〜8): <span id="recTvStdNote">396〜528</span>mL</div>
             </div>
 
-            <!-- ③ 推奨 呼吸回数 (RR) -->
+            <!-- ③ 呼吸回数 (RR) -->
             <div class="rec-card card-rr">
-              <span class="rec-label">③ 推奨 呼吸回数 (RR)</span>
+              <div class="rec-card-top">
+                <span class="rec-label">③ 呼吸回数 (RR)</span>
+                <span class="rec-pill pill-teal" id="pillRecRr">推奨 14</span>
+              </div>
               <div class="rec-val-wrap">
                 <span class="rec-val text-teal" id="recRr">14</span>
                 <span class="rec-unit">回/分</span>
               </div>
+              <!-- RR操作スライダー -->
+              <div class="card-slider-wrap">
+                <input type="range" id="setRrSlider" class="custom-range range-teal" min="6" max="42" step="1" value="14" />
+              </div>
               <div class="rec-sub">1周期: <span id="recCycleTime">4.3</span> 秒</div>
-              <div class="rec-note">最小仕事量 Otis最適解</div>
+              <div class="rec-note">動かすとVtが自動反比例連動</div>
             </div>
 
-            <!-- ④ 【新規】推奨 吸気時間 (Ti) & I:E比 -->
+            <!-- ④ 吸気時間 (Ti) -->
             <div class="rec-card card-ti">
-              <span class="rec-label">④ 推奨 吸気時間 (Ti)</span>
+              <div class="rec-card-top">
+                <span class="rec-label">④ 吸気時間 (Ti)</span>
+                <span class="rec-pill pill-purple" id="pillRecTi">推奨 1.0</span>
+              </div>
               <div class="rec-val-wrap">
-                <span class="rec-val text-purple" id="recTi">1.0</span>
+                <span class="rec-val text-purple" id="recTi">1.00</span>
                 <span class="rec-unit">秒</span>
+              </div>
+              <!-- Ti操作スライダー -->
+              <div class="card-slider-wrap">
+                <input type="range" id="setTiSlider" class="custom-range range-purple" min="0.40" max="2.20" step="0.05" value="1.00" />
               </div>
               <div class="rec-sub">I:E比 <strong id="recIeRatio">1 : 2.0</strong></div>
               <div class="rec-note" id="recTiNote">呼気 Te: 3.3s (≥ 2×RCexp)</div>
@@ -416,7 +451,7 @@
           <div class="safety-banner">
             <div class="safety-icon">🛡️</div>
             <div class="safety-info">
-              <div class="safety-title">推定 駆動圧 (Driving Pressure: ΔP = Vt / C)</div>
+              <div class="safety-title">設定一回換気量での推定 駆動圧 (Driving Pressure: ΔP = Vt / C)</div>
               <div class="safety-desc">
                 推定駆動圧: <strong id="dpDisplay">9.4</strong> cmH2O
                 <span class="safety-status status-good" id="dpStatus">良好 (≤ 14 cmH2O)</span>
@@ -429,7 +464,7 @@
         <section class="card-section">
           <div class="section-header">
             <span class="step-num">4</span>
-            <h2>換気特性グラフィック (セーフティーフレーム)</h2>
+            <h2>換気特性グラフィック (セーフティーフレーム & 設定点)</h2>
           </div>
 
           <div class="canvas-wrapper">
@@ -437,12 +472,17 @@
             <div class="canvas-legend">
               <div class="legend-pill">
                 <span class="legend-dot target-dot"></span>
-                <span class="legend-label">最適目標点:</span>
+                <span class="legend-label">現在設定点:</span>
                 <span class="legend-val" id="graphTargetVal">14 bpm / 470 mL</span>
               </div>
               <div class="legend-pill">
+                <span class="legend-dot rec-dot"></span>
+                <span class="legend-label">Otis推奨点:</span>
+                <span class="legend-val-rec" id="graphRecVal">14 bpm / 470 mL</span>
+              </div>
+              <div class="legend-pill">
                 <span class="legend-line frame-line"></span>
-                <span class="legend-label">セーフティーフレーム (安全許容枠)</span>
+                <span class="legend-label">安全枠 (過膨張・無効換気・AutoPEEP防止)</span>
               </div>
             </div>
           </div>
@@ -464,7 +504,6 @@
   <input type="hidden" id="minVolSlider" value="100" />
   <span style="display:none;" id="minVolDisplay"></span>
 
-  <script src="app.js?v=20260919_6"></script>
+  <script src="app.js?v=20260920_1"></script>
 </body>
 </html>
-

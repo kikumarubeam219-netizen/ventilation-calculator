@@ -1,12 +1,12 @@
 /**
  * 人工呼吸設定アシスタント
- * 基本モード (IBW & %MV計算) ＆ ASV力学最適化モード (実測R・C・EtCO2・吸気時間Ti算出)
+ * 基本モード (IBW & %MV計算) ＆ ASV力学最適化モード (インタラクティブ手動連動シミュレーション)
  */
 
 (function () {
   "use strict";
 
-  // ===== 共通状態 =====
+  // ===== 状態管理 =====
   const state = {
     currentMode: "asv", // "basic" | "asv"
     gender: "male",
@@ -16,10 +16,22 @@
     // 基本モード用
     basicPercent: 100,
 
-    // ASVモード用
+    // ASVモード 生体入力値
     etco2: 38,
     r: 10,
-    c: 50
+    c: 50,
+
+    // ASVモード 推奨値 (Otis理論計算値)
+    recMv: 6.6,
+    recVt: 470,
+    recRr: 14,
+    recTi: 1.00,
+
+    // ASVモード 現在設定値 (手動連動スライダー値)
+    setMv: 6.6,
+    setVt: 470,
+    setRr: 14,
+    setTi: 1.00
   };
 
   function calcIBW(gender, heightCm) {
@@ -28,7 +40,7 @@
     return Math.round(ibw * 10) / 10;
   }
 
-  // ===== タブ要素 =====
+  // ===== タブ切り替え =====
   const tabBasic = document.getElementById("tabBasic");
   const tabAsv = document.getElementById("tabAsv");
   const viewBasic = document.getElementById("viewBasic");
@@ -47,12 +59,11 @@
     viewBasic.style.display = mode === "basic" ? "block" : "none";
     viewAsv.style.display = mode === "asv" ? "block" : "none";
 
-    // 共通パラメータ同期
     syncInputs();
     if (mode === "basic") {
       updateBasic();
     } else {
-      updateAsv();
+      recomputeAsvRecommendation(true);
     }
   }
 
@@ -69,7 +80,7 @@
   }
 
   // ==========================================
-  // 1. 基本モード (viewBasic) のロジック
+  // 1. 基本モード (viewBasic)
   // ==========================================
   const bBtnMale = document.getElementById("bBtnMale");
   const bBtnFemale = document.getElementById("bBtnFemale");
@@ -110,19 +121,16 @@
     state.ibw = calcIBW(state.gender, state.height);
     bIbwDisplay.textContent = state.ibw.toFixed(1);
 
-    // TV: IBW × 6 〜 8 mL
     const tvMin = Math.round(state.ibw * 6);
     const tvMax = Math.round(state.ibw * 8);
     bTvMin.textContent = tvMin;
     bTvMax.textContent = tvMax;
 
-    // MV基準 (100%): IBW × 100 mL = 0.1 L/kg
     const mvBaseL = Math.round(state.ibw * 0.1 * 10) / 10;
     const mvBaseMl = Math.round(mvBaseL * 1000);
     bMvBaseL.textContent = mvBaseL.toFixed(1);
     bMvBaseMl.textContent = mvBaseMl.toLocaleString();
 
-    // %スライダー
     bPercentDisplay.textContent = state.basicPercent + "%";
     if (state.basicPercent !== 100) {
       bAdjustedBox.style.display = "block";
@@ -136,7 +144,7 @@
   }
 
   // ==========================================
-  // 2. ASV・力学最適化モード (viewAsv) のロジック
+  // 2. ASV・力学最適化モード (viewAsv)
   // ==========================================
   const aBtnMale = document.getElementById("aBtnMale");
   const aBtnFemale = document.getElementById("aBtnFemale");
@@ -161,6 +169,20 @@
   const rcExpDisplay = document.getElementById("rcExpDisplay");
   const rcExpBadge = document.getElementById("rcExpBadge");
 
+  // 推奨値ピル
+  const pillRecMv = document.getElementById("pillRecMv");
+  const pillRecVt = document.getElementById("pillRecVt");
+  const pillRecRr = document.getElementById("pillRecRr");
+  const pillRecTi = document.getElementById("pillRecTi");
+  const btnResetToRec = document.getElementById("btnResetToRec");
+
+  // 手動操作スライダー
+  const setMvSlider = document.getElementById("setMvSlider");
+  const setVtSlider = document.getElementById("setVtSlider");
+  const setRrSlider = document.getElementById("setRrSlider");
+  const setTiSlider = document.getElementById("setTiSlider");
+
+  // 表示フィールド
   const recMvL = document.getElementById("recMvL");
   const recMvMl = document.getElementById("recMvMl");
   const recVt = document.getElementById("recVt");
@@ -168,7 +190,6 @@
   const recTvStdNote = document.getElementById("recTvStdNote");
   const recRr = document.getElementById("recRr");
   const recCycleTime = document.getElementById("recCycleTime");
-
   const recTi = document.getElementById("recTi");
   const recIeRatio = document.getElementById("recIeRatio");
   const recTiNote = document.getElementById("recTiNote");
@@ -179,37 +200,39 @@
   const canvas = document.getElementById("asvCanvas");
   const ctx = canvas ? canvas.getContext("2d") : null;
   const graphTargetVal = document.getElementById("graphTargetVal");
+  const graphRecVal = document.getElementById("graphRecVal");
 
+  // イベント登録: 入力値変更
   aBtnMale.addEventListener("click", () => {
     state.gender = "male";
     syncInputs();
-    updateAsv();
+    recomputeAsvRecommendation(true);
   });
   aBtnFemale.addEventListener("click", () => {
     state.gender = "female";
     syncInputs();
-    updateAsv();
+    recomputeAsvRecommendation(true);
   });
   aHeightSlider.addEventListener("input", (e) => {
     state.height = parseInt(e.target.value, 10);
     syncInputs();
-    updateAsv();
+    recomputeAsvRecommendation(true);
   });
 
   etco2Slider.addEventListener("input", (e) => {
     state.etco2 = parseInt(e.target.value, 10);
     clearPresets();
-    updateAsv();
+    recomputeAsvRecommendation(true);
   });
   rSlider.addEventListener("input", (e) => {
     state.r = parseInt(e.target.value, 10);
     clearPresets();
-    updateAsv();
+    recomputeAsvRecommendation(true);
   });
   cSlider.addEventListener("input", (e) => {
     state.c = parseInt(e.target.value, 10);
     clearPresets();
-    updateAsv();
+    recomputeAsvRecommendation(true);
   });
 
   presetNorm.addEventListener("click", () => applyAsvPreset("norm", 38, 10, 50));
@@ -229,20 +252,179 @@
     if (type === "ards") presetArds.classList.add("active");
     if (type === "copd") presetCopd.classList.add("active");
 
-    updateAsv();
+    recomputeAsvRecommendation(true);
   }
 
   function clearPresets() {
     [presetNorm, presetArds, presetCopd].forEach(btn => btn.classList.remove("active"));
   }
 
-  function updateAsv() {
+  // 「🔄 推奨値にリセット」ボタン
+  btnResetToRec.addEventListener("click", () => {
+    state.setMv = state.recMv;
+    state.setVt = state.recVt;
+    state.setRr = state.recRr;
+    state.setTi = state.recTi;
+    syncSlidersToState();
+    renderAsvView();
+  });
+
+  // ==========================================
+  // 【最重要】手動スライダー相互連動ロジック
+  // ==========================================
+
+  // ① 分時換気量 (setMvSlider) を動かしたとき:
+  // -> Otis式により Vt, RR, Ti を自動追従再計算！
+  setMvSlider.addEventListener("input", (e) => {
+    state.setMv = parseFloat(e.target.value);
+
+    // 新しいsetMvに対してOtis最適解を算出
+    const rcExpSec = (state.r * (state.c / 1000));
+    const vdMl = Math.round(2.2 * state.ibw);
+    const vdL = vdMl / 1000;
+    const a = 0.33;
+
+    const num = Math.sqrt(1 + 4 * a * rcExpSec * (state.setMv / vdL)) - 1;
+    const denom = 2 * a * (rcExpSec / 60);
+    let optF = Math.round(num / (denom * 60));
+
+    const minF = 5;
+    const maxF = Math.min(48, Math.round(20 / rcExpSec));
+    if (isNaN(optF) || optF < minF) optF = minF + 2;
+    if (optF > maxF) optF = maxF - 1;
+
+    state.setRr = optF;
+    state.setVt = Math.round((state.setMv * 1000) / state.setRr);
+
+    // Tiの自動連動
+    state.setTi = calcRecommendedTi(state.setRr, rcExpSec);
+
+    syncSlidersToState();
+    renderAsvView();
+  });
+
+  // ② 一回換気量 (setVtSlider) を動かしたとき:
+  // -> 現在の分時換気量 (setMv) を維持し、呼吸回数 RR を自動連動 (RR = MV / Vt)！ Tiも連動！
+  setVtSlider.addEventListener("input", (e) => {
+    state.setVt = parseInt(e.target.value, 10);
+    if (state.setVt <= 0) return;
+
+    // RR = (setMv * 1000) / setVt
+    let newRr = Math.round((state.setMv * 1000) / state.setVt);
+    if (newRr < 5) newRr = 5;
+    if (newRr > 50) newRr = 50;
+    state.setRr = newRr;
+
+    const rcExpSec = (state.r * (state.c / 1000));
+    state.setTi = calcRecommendedTi(state.setRr, rcExpSec);
+
+    syncSlidersToState();
+    renderAsvView();
+  });
+
+  // ③ 呼吸回数 (setRrSlider) を動かしたとき:
+  // -> 現在の分時換気量 (setMv) を維持し、一回換気量 Vt を自動連動 (Vt = MV / RR)！ Tiも連動！
+  setRrSlider.addEventListener("input", (e) => {
+    state.setRr = parseInt(e.target.value, 10);
+    if (state.setRr <= 0) return;
+
+    // Vt = (setMv * 1000) / setRr
+    let newVt = Math.round((state.setMv * 1000) / state.setRr);
+    if (newVt < 150) newVt = 150;
+    if (newVt > 1200) newVt = 1200;
+    state.setVt = newVt;
+
+    const rcExpSec = (state.r * (state.c / 1000));
+    state.setTi = calcRecommendedTi(state.setRr, rcExpSec);
+
+    syncSlidersToState();
+    renderAsvView();
+  });
+
+  // ④ 吸気時間 (setTiSlider) を動かしたとき:
+  // -> I:E比や呼気時間Teが追従！
+  setTiSlider.addEventListener("input", (e) => {
+    state.setTi = parseFloat(e.target.value);
+    renderAsvView();
+  });
+
+  function syncSlidersToState() {
+    setMvSlider.value = state.setMv.toFixed(1);
+    setVtSlider.value = state.setVt;
+    setRrSlider.value = state.setRr;
+    setTiSlider.value = state.setTi.toFixed(2);
+  }
+
+  // 呼吸回数と時定数に応じた推奨Ti算出関数
+  function calcRecommendedTi(rr, rcExpSec) {
+    const tTotal = 60 / rr;
+    let tiRatio;
+    if (rcExpSec < 0.50) {
+      tiRatio = 1 / 2.5; // ARDS
+    } else if (rcExpSec > 0.85) {
+      tiRatio = 1 / 4.5; // COPD
+    } else {
+      tiRatio = 1 / 3.0; // 正常
+    }
+    let ti = tTotal * tiRatio;
+    if (ti < rcExpSec) ti = rcExpSec;
+    if (ti > 1.5) ti = 1.5;
+    if (ti < 0.6) ti = 0.6;
+    return Math.round(ti * 20) / 20; // 0.05刻み
+  }
+
+  // ==========================================
+  // 推奨値の計算 & 全体レンダリング
+  // ==========================================
+  function recomputeAsvRecommendation(applyToSet = false) {
     state.ibw = calcIBW(state.gender, state.height);
     const vdMl = Math.round(2.2 * state.ibw);
     const vdL = vdMl / 1000;
     const baseMvL = state.ibw * 0.1;
 
-    // 理想体重 × 6〜8 mL
+    // EtCO2 補正 (目標 38)
+    const etRatio = state.etco2 / 38;
+    const clampedRatio = Math.max(0.6, Math.min(2.2, etRatio));
+    state.recMv = Math.round(baseMvL * clampedRatio * 10) / 10;
+
+    // 呼気時定数 RCexp
+    const rcExpSec = (state.r * (state.c / 1000));
+
+    // Otis式 最適呼吸数
+    const a = 0.33;
+    const num = Math.sqrt(1 + 4 * a * rcExpSec * (state.recMv / vdL)) - 1;
+    const denom = 2 * a * (rcExpSec / 60);
+    let optF = Math.round(num / (denom * 60));
+
+    const minF = 5;
+    const maxF = Math.min(48, Math.round(20 / rcExpSec));
+    if (isNaN(optF) || optF < minF) optF = minF + 2;
+    if (optF > maxF) optF = maxF - 1;
+    state.recRr = optF;
+
+    // 推奨Vt
+    state.recVt = Math.round((state.recMv * 1000) / state.recRr);
+
+    // 推奨Ti
+    state.recTi = calcRecommendedTi(state.recRr, rcExpSec);
+
+    // 初回またはパラメータ変更時に手動設定値へ適用
+    if (applyToSet) {
+      state.setMv = state.recMv;
+      state.setVt = state.recVt;
+      state.setRr = state.recRr;
+      state.setTi = state.recTi;
+      syncSlidersToState();
+    }
+
+    renderAsvView();
+  }
+
+  function renderAsvView() {
+    const rcExpSec = (state.r * (state.c / 1000));
+    const rcExpRounded = Math.round(rcExpSec * 100) / 100;
+
+    // TV基準値 (IBW × 6〜8)
     const stdTvMin = Math.round(state.ibw * 6);
     const stdTvMax = Math.round(state.ibw * 8);
 
@@ -250,87 +432,23 @@
     aTvRangeDisplay.textContent = `${stdTvMin} 〜 ${stdTvMax}`;
     recTvStdNote.textContent = `${stdTvMin}〜${stdTvMax}`;
 
-    // EtCO2 補正 (目標 38)
-    const targetEt = 38;
-    const etRatio = state.etco2 / targetEt;
-    const clampedRatio = Math.max(0.6, Math.min(2.2, etRatio));
-    const targetMvL = Math.round(baseMvL * clampedRatio * 10) / 10;
-    const targetMvMl = Math.round(targetMvL * 1000);
-
-    // 呼気時定数 RCexp
-    const rcExpSec = (state.r * (state.c / 1000));
-    const rcExpRounded = Math.round(rcExpSec * 100) / 100;
-
-    // Otis式による最適呼吸数
-    const a = 0.33;
-    const num = Math.sqrt(1 + 4 * a * rcExpSec * (targetMvL / vdL)) - 1;
-    const denom = 2 * a * (rcExpSec / 60);
-    let optF = Math.round(num / (denom * 60));
-
-    // 安全枠
-    const minF = 5;
-    const maxF = Math.min(48, Math.round(20 / rcExpSec));
-    const minVt = Math.round(4.4 * state.ibw);
-    const maxVt = Math.round(Math.min(15.4 * state.ibw, targetMvMl / 5));
-
-    if (isNaN(optF) || optF < minF) optF = minF + 2;
-    if (optF > maxF) optF = maxF - 1;
-
-    let optVt = Math.round(targetMvMl / optF);
-    if (optVt < minVt) optVt = minVt;
-    if (optVt > maxVt) optVt = maxVt;
-
-    const optVtPerKg = (optVt / state.ibw).toFixed(1);
-    const tTotal = 60 / optF; // 1呼吸の全周期 [秒]
-
-    // ==========================================
-    // 吸気時間 (Ti) & 呼気時間 (Te) の決定ロジック
-    // ==========================================
-    // 呼気時間はエアートラッピング防止のため Te >= 2.0 * RCexp が必要
-    // 病態ごとの時間配分比率:
-    let tiRatio;
-    if (rcExpRounded < 0.50) {
-      // ARDS・硬い肺: 時定数が短く酸素化重視 -> I:E ≈ 1:1.5
-      tiRatio = 1 / 2.5; // 40%
-    } else if (rcExpRounded > 0.85) {
-      // COPD・閉塞性: 呼気時間を最長化 -> I:E ≈ 1:3.5
-      tiRatio = 1 / 4.5; // 22%
-    } else {
-      // 正常肺: 標準 I:E ≈ 1:2.0
-      tiRatio = 1 / 3.0; // 33%
-    }
-
-    let calcTi = tTotal * tiRatio;
-    // 最小吸気時間は 1 * RCexp を担保
-    if (calcTi < rcExpSec) calcTi = rcExpSec;
-    // 最大吸気時間ガード (成人では通常 1.5s 以下)
-    if (calcTi > 1.5) calcTi = 1.5;
-    if (calcTi < 0.6) calcTi = 0.6;
-
-    const calcTe = tTotal - calcTi;
-    const ieRatioVal = (calcTe / calcTi).toFixed(1);
-
-    // 駆動圧 (Driving Pressure)
-    const drivingPressure = Math.round((optVt / state.c) * 10) / 10;
-
-    // 表示更新
+    // EtCO2 フィードバック
     etco2Display.textContent = state.etco2;
     rDisplay.textContent = state.r;
     cDisplay.textContent = state.c;
 
     if (state.etco2 > 45) {
-      const pct = Math.round((clampedRatio - 1) * 100);
-      etco2Feedback.textContent = `高炭酸ガス血症傾向（換気要求量: +${pct}% 補正）`;
+      etco2Feedback.textContent = `高炭酸ガス血症傾向（要求換気量: 増量補正中）`;
       etco2Feedback.style.color = "#fbbf24";
     } else if (state.etco2 < 32) {
-      const pct = Math.round((1 - clampedRatio) * 100);
-      etco2Feedback.textContent = `過換気傾向（換気要求量: -${pct}% 補正）`;
+      etco2Feedback.textContent = `低炭酸ガス・過換気傾向（要求換気量: 減量補正中）`;
       etco2Feedback.style.color = "#38bdf8";
     } else {
-      etco2Feedback.textContent = `EtCO2は適正範囲内です（換気要求比: ${Math.round(clampedRatio * 100)}%）`;
+      etco2Feedback.textContent = `EtCO2は適正範囲内です（基準目標 38 mmHg）`;
       etco2Feedback.style.color = "var(--text-dim)";
     }
 
+    // RCexp バッジ
     rcExpDisplay.textContent = rcExpRounded.toFixed(2);
     if (rcExpRounded < 0.50) {
       rcExpBadge.textContent = "拘束性・硬い肺 (ARDS等)";
@@ -349,24 +467,45 @@
       rcExpBadge.style.background = "rgba(45, 212, 191, 0.12)";
     }
 
-    // 4連推奨カード
-    recMvL.textContent = targetMvL.toFixed(1);
-    recMvMl.textContent = targetMvMl.toLocaleString();
-    recVt.textContent = optVt;
-    recVtPerKg.textContent = optVtPerKg;
-    recRr.textContent = optF;
+    // 推奨値ピルバッジの更新 (常に保持表示)
+    pillRecMv.textContent = `推奨 ${state.recMv.toFixed(1)}`;
+    pillRecVt.textContent = `推奨 ${state.recVt}`;
+    pillRecRr.textContent = `推奨 ${state.recRr}`;
+    pillRecTi.textContent = `推奨 ${state.recTi.toFixed(2)}s`;
+
+    // 現在設定値の表示更新
+    recMvL.textContent = state.setMv.toFixed(1);
+    recMvMl.textContent = Math.round(state.setMv * 1000).toLocaleString();
+
+    recVt.textContent = state.setVt;
+    recVtPerKg.textContent = (state.setVt / state.ibw).toFixed(1);
+
+    recRr.textContent = state.setRr;
+    const tTotal = 60 / state.setRr;
     recCycleTime.textContent = tTotal.toFixed(1);
 
-    recTi.textContent = calcTi.toFixed(2);
-    recIeRatio.textContent = `1 : ${ieRatioVal}`;
-    recTiNote.textContent = `呼気 Te: ${calcTe.toFixed(2)}s (≥ ${(2 * rcExpSec).toFixed(2)}s)`;
+    recTi.textContent = state.setTi.toFixed(2);
+    const te = tTotal - state.setTi;
+    const ieVal = te > 0 ? (te / state.setTi).toFixed(1) : "0.0";
+    recIeRatio.textContent = `1 : ${ieVal}`;
 
-    // 駆動圧
-    dpDisplay.textContent = drivingPressure.toFixed(1);
-    if (drivingPressure <= 14.0) {
+    // 呼気時間の安全性判定 (Te >= 2 * RCexp)
+    const minTeRequired = 2 * rcExpSec;
+    if (te < minTeRequired) {
+      recTiNote.textContent = `⚠️呼気 Te: ${te.toFixed(2)}s (Auto-PEEP警告 < ${(minTeRequired).toFixed(2)}s)`;
+      recTiNote.style.color = "#f87171";
+    } else {
+      recTiNote.textContent = `呼気 Te: ${te.toFixed(2)}s (安全 ≥ ${(minTeRequired).toFixed(2)}s)`;
+      recTiNote.style.color = "var(--text-dim)";
+    }
+
+    // 駆動圧 (Driving Pressure: ΔP = setVt / C)
+    const dp = Math.round((state.setVt / state.c) * 10) / 10;
+    dpDisplay.textContent = dp.toFixed(1);
+    if (dp <= 14.0) {
       dpStatus.textContent = "良好 (≤ 14 cmH2O)";
       dpStatus.className = "safety-status status-good";
-    } else if (drivingPressure <= 17.0) {
+    } else if (dp <= 17.0) {
       dpStatus.textContent = "注意 (15〜17 cmH2O)";
       dpStatus.className = "safety-status status-warn";
     } else {
@@ -374,18 +513,22 @@
       dpStatus.className = "safety-status status-danger";
     }
 
+    // グラフ凡例テキスト
     if (graphTargetVal) {
-      graphTargetVal.textContent = `${optF} bpm / ${optVt} mL (${optVtPerKg} mL/kg)`;
+      graphTargetVal.textContent = `${state.setRr} bpm / ${state.setVt} mL`;
+    }
+    if (graphRecVal) {
+      graphRecVal.textContent = `${state.recRr} bpm / ${state.recVt} mL`;
     }
 
-    // Canvas描画
+    // Canvasグラフィック描画
     if (ctx) {
-      drawASVGraph(minF, maxF, minVt, maxVt, targetMvMl, optF, optVt);
+      drawInteractiveGraph(rcExpSec);
     }
   }
 
-  // ===== Canvas描画 =====
-  function drawASVGraph(minF, maxF, minVt, maxVt, targetMvMl, optF, optVt) {
+  // ===== Canvasグラフィックリアルタイム描画 =====
+  function drawInteractiveGraph(rcExpSec) {
     const w = canvas.width;
     const h = canvas.height;
     ctx.clearRect(0, 0, w, h);
@@ -442,7 +585,12 @@
     ctx.fillText("一回換気量 Vt (mL)", 0, 0);
     ctx.restore();
 
-    // セーフティーフレーム
+    // セーフティーフレーム (安全枠)
+    const minF = 5;
+    const maxF = Math.min(48, Math.round(20 / rcExpSec));
+    const minVt = Math.round(4.4 * state.ibw);
+    const maxVt = Math.round(Math.min(15.4 * state.ibw, (state.setMv * 1000) / 5));
+
     const sfL = toX(minF);
     const sfR = toX(Math.min(axisMaxF - 2, maxF));
     const sfT = toY(Math.min(axisMaxVt, maxVt));
@@ -460,13 +608,14 @@
     ctx.strokeRect(sfL, sfT, sfR - sfL, sfB - sfT);
     ctx.setLineDash([]);
 
-    // 等分時換気量曲線
+    // 等分時換気量曲線 (現在設定 setMv に追従)
+    const currentMvMl = state.setMv * 1000;
     ctx.beginPath();
     ctx.strokeStyle = "rgba(251, 191, 36, 0.6)";
     ctx.lineWidth = 2.5;
     let started = false;
     for (let f = 4; f <= axisMaxF; f += 0.5) {
-      const vt = targetMvMl / f;
+      const vt = currentMvMl / f;
       if (vt <= axisMaxVt && vt >= 50) {
         const x = toX(f);
         const y = toY(vt);
@@ -480,37 +629,51 @@
     }
     ctx.stroke();
 
-    // 最適目標点
-    const ptX = toX(optF);
-    const ptY = toY(optVt);
+    // 1. Otis推奨点 (破線サークル)
+    const recX = toX(state.recRr);
+    const recY = toY(state.recVt);
+    ctx.strokeStyle = "rgba(148, 163, 184, 0.8)";
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.arc(recX, recY, 9, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
 
+    // 2. 現在設定点 (ユーザー操作点: 黄色の二重円＆グロウ)
+    const setX = toX(state.setRr);
+    const setY = toY(state.setVt);
+
+    // 十字破線ガイド
     ctx.strokeStyle = "rgba(251, 191, 36, 0.35)";
     ctx.lineWidth = 1;
     ctx.setLineDash([3, 3]);
     ctx.beginPath();
-    ctx.moveTo(padL, ptY);
-    ctx.lineTo(ptX, ptY);
-    ctx.moveTo(ptX, padT + plotH);
-    ctx.lineTo(ptX, ptY);
+    ctx.moveTo(padL, setY);
+    ctx.lineTo(setX, setY);
+    ctx.moveTo(setX, padT + plotH);
+    ctx.lineTo(setX, setY);
     ctx.stroke();
     ctx.setLineDash([]);
 
+    // 外側グロウ
     ctx.shadowColor = "rgba(251, 191, 36, 0.9)";
     ctx.shadowBlur = 14;
     ctx.fillStyle = "#fbbf24";
     ctx.beginPath();
-    ctx.arc(ptX, ptY, 7, 0, Math.PI * 2);
+    ctx.arc(setX, setY, 7, 0, Math.PI * 2);
     ctx.fill();
     ctx.shadowBlur = 0;
 
+    // 白枠リング
     ctx.strokeStyle = "#ffffff";
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.arc(ptX, ptY, 7, 0, Math.PI * 2);
+    ctx.arc(setX, setY, 7, 0, Math.PI * 2);
     ctx.stroke();
   }
 
   // 初期化実行
   updateBasic();
-  updateAsv();
+  recomputeAsvRecommendation(true);
 })();
