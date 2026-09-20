@@ -1283,54 +1283,66 @@
 
   // 取扱説明書 ＆ 初心者向け呼吸療法解説書 モーダル制御
   function initManualModal() {
-    const modal = document.getElementById("manualModal");
-    const btnOpen = document.getElementById("btnOpenManual");
-    const btnClose = document.getElementById("btnCloseManual");
-    const btnBottomClose = document.getElementById("btnBottomCloseManual");
-    const overlay = document.getElementById("manualOverlay");
-    const btnTabApp = document.getElementById("btnTabManualApp");
-    const btnTabEdu = document.getElementById("btnTabManualEdu");
-    const contentApp = document.getElementById("manualTabApp");
-    const contentEdu = document.getElementById("manualTabEdu");
-
-    if (!modal || !btnOpen) return;
+    function getEls() {
+      return {
+        modal: document.getElementById("manualModal"),
+        btnOpen: document.getElementById("btnOpenManual"),
+        btnClose: document.getElementById("btnCloseManual"),
+        btnBottomClose: document.getElementById("btnBottomCloseManual"),
+        overlay: document.getElementById("manualOverlay"),
+        btnTabApp: document.getElementById("btnTabManualApp"),
+        btnTabEdu: document.getElementById("btnTabManualEdu"),
+        contentApp: document.getElementById("manualTabApp"),
+        contentEdu: document.getElementById("manualTabEdu")
+      };
+    }
 
     function openModal() {
-      modal.classList.remove("hidden");
-      document.body.style.overflow = "hidden";
+      const els = getEls();
+      if (els.modal) {
+        els.modal.classList.remove("hidden");
+        document.body.style.overflow = "hidden";
+      }
     }
 
     function closeModal() {
-      modal.classList.add("hidden");
-      document.body.style.overflow = "";
+      const els = getEls();
+      if (els.modal) {
+        els.modal.classList.add("hidden");
+        document.body.style.overflow = "";
+      }
     }
 
-    btnOpen.addEventListener("click", openModal);
-    if (btnClose) btnClose.addEventListener("click", closeModal);
-    if (btnBottomClose) btnBottomClose.addEventListener("click", closeModal);
-    if (overlay) overlay.addEventListener("click", closeModal);
+    const els = getEls();
+    if (els.btnOpen) els.btnOpen.addEventListener("click", openModal);
+    if (els.btnClose) els.btnClose.addEventListener("click", closeModal);
+    if (els.btnBottomClose) els.btnBottomClose.addEventListener("click", closeModal);
+    if (els.overlay) els.overlay.addEventListener("click", closeModal);
 
     // Escキーで閉じる
     window.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && !modal.classList.contains("hidden")) {
-        closeModal();
+      if (e.key === "Escape") {
+        const m = document.getElementById("manualModal");
+        if (m && !m.classList.contains("hidden")) {
+          closeModal();
+        }
       }
     });
 
     // タブ切り替え
-    if (btnTabApp && btnTabEdu && contentApp && contentEdu) {
-      btnTabApp.addEventListener("click", () => {
-        btnTabApp.classList.add("active");
-        btnTabEdu.classList.remove("active");
-        contentApp.style.display = "flex";
-        contentEdu.style.display = "none";
+    if (els.btnTabApp && els.btnTabEdu && els.contentApp && els.contentEdu) {
+      els.btnTabApp.addEventListener("click", () => {
+        els.btnTabApp.classList.add("active");
+        els.btnTabEdu.classList.remove("active");
+        els.contentApp.style.display = "flex";
+        els.contentEdu.style.display = "none";
       });
 
-      btnTabEdu.addEventListener("click", () => {
-        btnTabEdu.classList.add("active");
-        btnTabApp.classList.remove("active");
-        contentApp.style.display = "none";
-        contentEdu.style.display = "flex";
+      els.btnTabEdu.addEventListener("click", () => {
+        els.btnTabEdu.classList.add("active");
+        els.btnTabApp.classList.remove("active");
+        els.contentApp.style.display = "none";
+        els.contentEdu.style.display = "flex";
       });
     }
   }
