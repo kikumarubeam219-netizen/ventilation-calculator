@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&family=Noto+Sans+JP:wght@400;500;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=20260920_11" />
+  <link rel="stylesheet" href="style.css?v=20260920_12" />
 </head>
 <body>
   <!-- トースト通知 -->
@@ -136,6 +136,100 @@
               <div class="mv-target-val"><span class="mv-target-huge text-amber" id="bMvTargetL">6.6</span> <span class="range-unit" style="font-size:16px;">L/min</span> <span class="mv-target-sub">(<span id="bMvTargetMl">6,600</span> mL/min)</span></div>
             </div>
           </div>
+
+            <!-- 病態別の%分時換気量目安・クイック適用テーブル -->
+            <details class="ref-table-toggle" open>
+              <summary class="ref-table-summary">
+                <span class="ref-sum-left">📖 病態別の%分時換気量 目安・クイック適用</span>
+                <span class="ref-sum-badge">タップで%値を即座に反映</span>
+              </summary>
+              <div class="ref-table-wrapper">
+                <table class="ref-table">
+                  <thead>
+                    <tr>
+                      <th>状態・病態</th>
+                      <th>目安 (%MV)</th>
+                      <th>臨床背景・代謝変動</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr class="ref-row-high">
+                      <td><span class="status-dot dot-red"></span>痙攣・てんかん重積</td>
+                      <td class="pct-val">200〜300%以上</td>
+                      <td>著明な筋活動亢進・乳酸蓄積</td>
+                      <td><button type="button" class="btn-apply-pct" data-pct="250">250% 適用</button></td>
+                    </tr>
+                    <tr class="ref-row-high">
+                      <td><span class="status-dot dot-red"></span>シバリング</td>
+                      <td class="pct-val">150〜300%</td>
+                      <td>TTM導入・復温時に酸素消費激増</td>
+                      <td><button type="button" class="btn-apply-pct" data-pct="200">200% 適用</button></td>
+                    </tr>
+                    <tr class="ref-row-high">
+                      <td><span class="status-dot dot-red"></span>重症熱傷</td>
+                      <td class="pct-val">150〜200%</td>
+                      <td>超代謝状態 (Hypermetabolism)</td>
+                      <td><button type="button" class="btn-apply-pct" data-pct="175">175% 適用</button></td>
+                    </tr>
+                    <tr class="ref-row-mid-high">
+                      <td><span class="status-dot dot-orange"></span>敗血症・SIRS</td>
+                      <td class="pct-val">120〜160%</td>
+                      <td>全身炎症による代謝・CO2産生亢進</td>
+                      <td><button type="button" class="btn-apply-pct" data-pct="140">140% 適用</button></td>
+                    </tr>
+                    <tr class="ref-row-mid-high">
+                      <td><span class="status-dot dot-orange"></span>呼吸仕事量の増大</td>
+                      <td class="pct-val">120〜150%</td>
+                      <td>努力性自発呼吸・人工呼吸非同調</td>
+                      <td><button type="button" class="btn-apply-pct" data-pct="135">135% 適用</button></td>
+                    </tr>
+                    <tr class="ref-row-mid">
+                      <td><span class="status-dot dot-amber"></span>発熱 (38〜39℃)</td>
+                      <td class="pct-val">110〜130%</td>
+                      <td>体温1℃上昇毎に約10〜13%増加</td>
+                      <td><button type="button" class="btn-apply-pct" data-pct="120">120% 適用</button></td>
+                    </tr>
+                    <tr class="ref-row-mid">
+                      <td><span class="status-dot dot-amber"></span>不穏・せん妄</td>
+                      <td class="pct-val">110〜130%</td>
+                      <td>交感神経緊張・体動による消費増</td>
+                      <td><button type="button" class="btn-apply-pct" data-pct="120">120% 適用</button></td>
+                    </tr>
+                    <tr class="ref-row-base">
+                      <td><span class="status-dot dot-teal"></span>安静時（基準）</td>
+                      <td class="pct-val text-teal">100%</td>
+                      <td>正常成人の安静時基礎代謝基準</td>
+                      <td><button type="button" class="btn-apply-pct btn-base" data-pct="100">100% 基準</button></td>
+                    </tr>
+                    <tr class="ref-row-low">
+                      <td><span class="status-dot dot-blue"></span>鎮静・鎮痛下</td>
+                      <td class="pct-val">80〜90%</td>
+                      <td>筋活動低下・交感神経抑制</td>
+                      <td><button type="button" class="btn-apply-pct" data-pct="85">85% 適用</button></td>
+                    </tr>
+                    <tr class="ref-row-low">
+                      <td><span class="status-dot dot-blue"></span>筋弛緩薬投与下</td>
+                      <td class="pct-val">70〜80%</td>
+                      <td>骨格筋活動の完全停止</td>
+                      <td><button type="button" class="btn-apply-pct" data-pct="75">75% 適用</button></td>
+                    </tr>
+                    <tr class="ref-row-low">
+                      <td><span class="status-dot dot-blue"></span>脳死・深昏睡</td>
+                      <td class="pct-val">70〜80%</td>
+                      <td>脳および中枢神経代謝の著明低下</td>
+                      <td><button type="button" class="btn-apply-pct" data-pct="75">75% 適用</button></td>
+                    </tr>
+                    <tr class="ref-row-low">
+                      <td><span class="status-dot dot-cyan"></span>低体温療法 (32〜34℃)</td>
+                      <td class="pct-val">50〜70%</td>
+                      <td>体温1℃低下毎に約7〜10%減少</td>
+                      <td><button type="button" class="btn-apply-pct" data-pct="60">60% 適用</button></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </details>
         </section>
       </main>
     </div>
@@ -836,6 +930,6 @@
   </div>
 
 
-  <script src="app.js?v=20260920_11"></script>
+  <script src="app.js?v=20260920_12"></script>
 </body>
 </html>

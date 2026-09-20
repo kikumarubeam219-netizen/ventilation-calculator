@@ -2076,3 +2076,172 @@ body {
     font-size: 0.95rem;
   }
 }
+
+
+/* ==========================================================================
+   病態別の%分時換気量目安・クイック適用テーブル スタイル
+   ========================================================================== */
+
+.ref-table-toggle {
+  margin-top: 14px;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: 14px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.ref-table-toggle[open] {
+  border-color: rgba(245, 158, 11, 0.45);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.ref-table-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: rgba(30, 41, 59, 0.5);
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+  transition: background 0.2s ease;
+}
+
+.ref-table-summary::-webkit-details-marker {
+  display: none;
+}
+
+.ref-table-summary:hover {
+  background: rgba(51, 65, 85, 0.6);
+}
+
+.ref-sum-left {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #fcd34d;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ref-sum-badge {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+}
+
+.ref-table-wrapper {
+  overflow-x: auto;
+  padding: 8px 12px 14px;
+}
+
+.ref-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+  text-align: left;
+}
+
+.ref-table th {
+  padding: 8px 10px;
+  background: rgba(245, 158, 11, 0.1);
+  color: #fbbf24;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  white-space: nowrap;
+}
+
+.ref-table td {
+  padding: 9px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: #cbd5e1;
+  vertical-align: middle;
+}
+
+.ref-table tbody tr {
+  transition: background 0.15s ease;
+}
+
+.ref-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* 状態ドット */
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.dot-red { background: #ef4444; box-shadow: 0 0 6px #ef4444; }
+.dot-orange { background: #f97316; box-shadow: 0 0 6px #f97316; }
+.dot-amber { background: #f59e0b; box-shadow: 0 0 6px #f59e0b; }
+.dot-teal { background: #14b8a6; box-shadow: 0 0 6px #14b8a6; }
+.dot-blue { background: #3b82f6; box-shadow: 0 0 6px #3b82f6; }
+.dot-cyan { background: #06b6d4; box-shadow: 0 0 6px #06b6d4; }
+
+/* 行のハイライト */
+.ref-row-high .pct-val { color: #f87171; font-weight: 700; }
+.ref-row-mid-high .pct-val { color: #fb923c; font-weight: 700; }
+.ref-row-mid .pct-val { color: #fcd34d; font-weight: 700; }
+.ref-row-base { background: rgba(20, 184, 166, 0.08); }
+.ref-row-base .pct-val { color: #2dd4bf; font-weight: 800; }
+.ref-row-low .pct-val { color: #93c5fd; font-weight: 700; }
+
+/* 適用ボタン */
+.btn-apply-pct {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #fcd34d;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.btn-apply-pct:hover {
+  background: rgba(245, 158, 11, 0.35);
+  color: #ffffff;
+  border-color: #fcd34d;
+  transform: translateY(-1px);
+}
+
+.btn-apply-pct.btn-base {
+  background: rgba(20, 184, 166, 0.2);
+  border-color: rgba(20, 184, 166, 0.5);
+  color: #2dd4bf;
+}
+
+.btn-apply-pct.btn-base:hover {
+  background: rgba(20, 184, 166, 0.4);
+  color: #ffffff;
+}
+
+@media (max-width: 640px) {
+  .ref-sum-badge {
+    display: none;
+  }
+  .ref-table th, .ref-table td {
+    padding: 7px 8px;
+    font-size: 0.78rem;
+  }
+  .btn-apply-pct {
+    padding: 3px 6px;
+    font-size: 0.72rem;
+  }
+}

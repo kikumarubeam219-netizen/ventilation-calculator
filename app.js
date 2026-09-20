@@ -1886,6 +1886,25 @@
   }
 
   initManualModal();
+
+  // ==========================================
+  // 病態別%分時換気量 クイック適用リスナー
+  // ==========================================
+  function initDiseaseRefTable() {
+    const buttons = document.querySelectorAll(".btn-apply-pct");
+    buttons.forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const pct = parseInt(btn.getAttribute("data-pct"), 10);
+        if (!isNaN(pct)) {
+          setParamValue("bMvPct", pct);
+          showToast(`💡 %分時換気量を ${pct}% に設定しました（全モード連動）`);
+        }
+      });
+    });
+  }
+
+  initDiseaseRefTable();
   initExportImport();
   updateBasic();
   recomputeRecommendation(true);
