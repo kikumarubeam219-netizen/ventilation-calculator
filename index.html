@@ -8,9 +8,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&family=Noto+Sans+JP:wght@400;500;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=20260920_8" />
+  <link rel="stylesheet" href="style.css?v=20260920_9" />
 </head>
 <body>
+  <!-- トースト通知 -->
+  <div id="toastNotification" class="toast-notification hidden" role="status" aria-live="polite"></div>
   <div class="app-container">
     <!-- ヘッダー -->
     <header class="app-header">
@@ -20,10 +22,21 @@
           <h1 class="header-title">換気量計算ツール</h1>
           <p class="header-subtitle">予測体重(PBW) & 呼吸力学 & 血液ガス(ABG)統合シミュレーター</p>
         </div>
-        <button type="button" class="btn-manual-trigger" id="btnOpenManual" aria-label="説明書と解説書を開く">
-          <span class="btn-manual-icon">📖</span>
-          <span class="btn-manual-text">使い方・解説書</span>
-        </button>
+        <div class="header-actions">
+          <button type="button" class="btn-action-trigger btn-export" id="btnExportData" aria-label="設定をテキストファイルに保存">
+            <span class="btn-act-icon">💾</span>
+            <span class="btn-act-text">保存 (txt)</span>
+          </button>
+          <button type="button" class="btn-action-trigger btn-import" id="btnImportData" aria-label="保存したテキストファイルを読み込む">
+            <span class="btn-act-icon">📂</span>
+            <span class="btn-act-text">読込</span>
+          </button>
+          <input type="file" id="fileInputData" accept=".txt,.json" style="display: none;" />
+          <button type="button" class="btn-manual-trigger" id="btnOpenManual" aria-label="説明書と解説書を開く">
+            <span class="btn-manual-icon">📖</span>
+            <span class="btn-manual-text">使い方・解説書</span>
+          </button>
+        </div>
       </div>
 
       <!-- モード切り替えタブ (3タブ体制) -->
@@ -823,6 +836,6 @@
   </div>
 
 
-  <script src="app.js?v=20260920_8"></script>
+  <script src="app.js?v=20260920_9"></script>
 </body>
 </html>

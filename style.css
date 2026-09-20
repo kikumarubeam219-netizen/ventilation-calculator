@@ -1940,3 +1940,139 @@ body {
     padding: 16px 12px;
   }
 }
+
+
+/* ==========================================================================
+   データ保存・読込ボタン ＆ トースト通知 スタイル
+   ========================================================================== */
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.btn-action-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 700;
+  border-radius: 9999px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  flex-shrink: 0;
+}
+
+.btn-act-icon {
+  font-size: 1.05rem;
+}
+
+/* 保存ボタン (ブルー〜インディゴ) */
+.btn-export {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(99, 102, 241, 0.25));
+  border: 1px solid rgba(59, 130, 246, 0.5);
+  color: #93c5fd;
+}
+
+.btn-export:hover {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.35), rgba(99, 102, 241, 0.4));
+  border-color: rgba(147, 197, 253, 0.8);
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(59, 130, 246, 0.35);
+}
+
+/* 読込ボタン (パープル〜ピンク) */
+.btn-import {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(236, 72, 153, 0.25));
+  border: 1px solid rgba(168, 85, 247, 0.5);
+  color: #e9d5ff;
+}
+
+.btn-import:hover {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.35), rgba(236, 72, 153, 0.4));
+  border-color: rgba(233, 213, 255, 0.8);
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(168, 85, 247, 0.35);
+}
+
+.btn-action-trigger:active {
+  transform: translateY(0);
+}
+
+/* トースト通知 */
+.toast-notification {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10000;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #f8fafc;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  padding: 12px 24px;
+  border-radius: 9999px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6), 0 0 15px rgba(56, 189, 248, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  pointer-events: none;
+  animation: toastSlideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  max-width: 90vw;
+  text-align: center;
+}
+
+.toast-notification.error {
+  border-color: rgba(239, 68, 68, 0.6);
+  color: #fecaca;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6), 0 0 15px rgba(239, 68, 68, 0.3);
+}
+
+.toast-notification.hidden {
+  opacity: 0;
+  transform: translateX(-50%) translateY(-20px);
+  pointer-events: none;
+  display: none !important;
+}
+
+@keyframes toastSlideDown {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@media (max-width: 640px) {
+  .header-actions {
+    width: 100%;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .btn-action-trigger, .btn-manual-trigger {
+    flex: 1;
+    justify-content: center;
+    padding: 9px 8px;
+    font-size: 0.82rem;
+    gap: 4px;
+  }
+  .btn-act-icon, .btn-manual-icon {
+    font-size: 0.95rem;
+  }
+}

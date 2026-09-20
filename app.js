@@ -1347,8 +1347,345 @@
     }
   }
 
-  // 初期化
-  initManualModal();
+
+// ==========================================================================
+  // データ保存 (エクスポート) ＆ データ読込 (インポート) 機構
+  // ==========================================================================
+
+  let toastTimer = null;
+  function showToast(message, isError) {
+    var toast = document.getElementById("toastNotification");
+    if (!toast) return;
+    if (toastTimer) clearTimeout(toastTimer);
+
+    toast.textContent = message;
+    if (isError) {
+      toast.classList.add("error");
+    } else {
+      toast.classList.remove("error");
+    }
+    toast.classList.remove("hidden");
+
+    toastTimer = setTimeout(function() {
+      toast.classList.add("hidden");
+    }, 3500);
+  }
+
+  function getActiveMode() {
+    var tabBasic = document.getElementById("tabBasic");
+    var tabAdv = document.getElementById("tabAdv");
+    if (tabBasic && tabBasic.classList.contains("active")) return "basic";
+    if (tabAdv && tabAdv.classList.contains("active")) return "adv";
+    return "opt";
+  }
+
+  function formatDateTime(d) {
+    function pad(n) { return String(n).padStart(2, "0"); }
+    return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + " " + pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds());
+  }
+
+  function exportVentilationData() {
+    var mode = getActiveMode();
+    var now = new Date();
+    var timeStr = formatDateTime(now);
+
+    var bPbwDisplay = document.getElementById("bPbwDisplay");
+    var bTvMin = document.getElementById("bTvMin");
+    var bTvMax = document.getElementById("bTvMax");
+    var bMvTargetL = document.getElementById("bMvTargetL");
+
+    var pbwValue = document.getElementById("pbwValue");
+    var graphRecVal = document.getElementById("graphRecVal");
+
+    var advPbwValue = document.getElementById("advPbwValue");
+    var advVdRatio = document.getElementById("advVdRatio");
+    var advPplatVal = document.getElementById("advPplatVal");
+    var advDpVal = document.getElementById("advDpVal");
+    var advGraphRecVal = document.getElementById("advGraphRecVal");
+
+    var systemData = {
+      appName: "VentilationCalculator",
+      version: 1,
+      savedAt: now.toISOString(),
+      activeMode: mode,
+      params: {
+        basic: {
+          gender: bState.gender,
+          height: bState.height,
+          mvPct: bState.mvPct
+        },
+        opt: {
+          gender: optState.gender,
+          height: optState.height,
+          etco2: optState.etco2,
+          r: optState.r,
+          c: optState.c,
+          setMv: optState.setMv,
+          setVt: optState.setVt,
+          setRr: optState.setRr,
+          setTi: optState.setTi
+        },
+        adv: {
+          gender: advState.gender,
+          height: advState.height,
+          etco2: advState.etco2,
+          r: advState.r,
+          c: advState.c,
+          paco2: advState.paco2,
+          ph: advState.ph,
+          targetPaco2: advState.targetPaco2,
+          peep: advState.peep,
+          setMv: advState.setMv,
+          setVt: advState.setVt,
+          setRr: advState.setRr,
+          setTi: advState.setTi
+        }
+      }
+    };
+
+    var modeTitle = "力学最適化モード";
+    if (mode === "basic") modeTitle = "基本モード";
+    if (mode === "adv") modeTitle = "高度臨床 (ABG & 圧) モード";
+
+    var lines = [];
+    lines.push("=======================================================");
+    lines.push("【換気量シミュレーター 設定記録データ】");
+    lines.push("記録日時: " + timeStr);
+    lines.push("対象モード: " + modeTitle);
+    lines.push("=======================================================");
+    lines.push("");
+
+    if (mode === "basic") {
+      var g = bState.gender === "male" ? "男性" : "女性";
+      var tvMinVal = bTvMin ? bTvMin.textContent : Math.round(calcPBW(bState.gender, bState.height) * 6);
+      var tvMaxVal = bTvMax ? bTvMax.textContent : Math.round(calcPBW(bState.gender, bState.height) * 8);
+      var mvTargetVal = bMvTargetL ? bMvTargetL.textContent : "--";
+
+      lines.push("【1. 患者基本情報】");
+      lines.push("・性別: " + g);
+      lines.push("・身長: " + bState.height + " cm");
+      lines.push("・予測体重 (PBW): " + (bPbwDisplay ? bPbwDisplay.textContent : calcPBW(bState.gender, bState.height).toFixed(1)) + " kg");
+      lines.push("");
+      lines.push("【2. 標準換気目安】");
+      lines.push("・推奨一回換気量 (6〜8 mL/kg): " + tvMinVal + " 〜 " + tvMaxVal + " mL");
+      lines.push("・目標分時換気量 (" + bState.mvPct + "%): " + mvTargetVal + " L/min");
+    } else if (mode === "opt") {
+      var g = optState.gender === "male" ? "男性" : "女性";
+      var rcExp = (optState.r * optState.c) / 1000;
+      var te = Math.max(0.1, (60 / optState.setRr) - optState.setTi);
+      var ieRatio = (te / optState.setTi).toFixed(1);
+      var pbwNum = calcPBW(optState.gender, optState.height);
+
+      lines.push("【1. 患者基本情報】");
+      lines.push("・性別: " + g);
+      lines.push("・身長: " + optState.height + " cm");
+      lines.push("・予測体重 (PBW): " + pbwNum.toFixed(1) + " kg");
+      lines.push("");
+      lines.push("【2. 呼吸力学測定値】");
+      lines.push("・呼気終末二酸化炭素 (EtCO2): " + optState.etco2 + " mmHg");
+      lines.push("・気道抵抗 (R): " + optState.r + " cmH2O/(L/s)");
+      lines.push("・静肺コンプライアンス (C): " + optState.c + " mL/cmH2O");
+      lines.push("・呼気時定数 (RCexp): " + rcExp.toFixed(2) + " 秒 (推奨呼気時間 ≧ " + (rcExp * 3).toFixed(2) + " 秒)");
+      lines.push("");
+      lines.push("【3. 換気設定値】");
+      lines.push("・分時換気量 (MV): " + optState.setMv.toFixed(1) + " L/min");
+      lines.push("・一回換気量 (Vt): " + optState.setVt + " mL (" + (optState.setVt / pbwNum).toFixed(1) + " mL/kg PBW)");
+      lines.push("・呼吸回数 (RR): " + optState.setRr + " bpm");
+      lines.push("・吸気時間 (Ti): " + optState.setTi.toFixed(2) + " 秒 (呼気時間 Te: " + te.toFixed(2) + " 秒, I:E = 1:" + ieRatio + ")");
+      lines.push("");
+      lines.push("【4. Otis力学推奨】");
+      lines.push("・最小呼吸仕事推奨点: " + (graphRecVal ? graphRecVal.textContent : "--"));
+    } else {
+      var g = advState.gender === "male" ? "男性" : "女性";
+      var rcExp = (advState.r * advState.c) / 1000;
+      var te = Math.max(0.1, (60 / advState.setRr) - advState.setTi);
+      var ieRatio = (te / advState.setTi).toFixed(1);
+      var pbwNum = calcPBW(advState.gender, advState.height);
+
+      lines.push("【1. 患者基本情報】");
+      lines.push("・性別: " + g);
+      lines.push("・身長: " + advState.height + " cm");
+      lines.push("・予測体重 (PBW): " + pbwNum.toFixed(1) + " kg");
+      lines.push("");
+      lines.push("【2. 呼吸力学・血液ガス測定値】");
+      lines.push("・気道抵抗 (R): " + advState.r + " cmH2O/(L/s)");
+      lines.push("・静肺コンプライアンス (C): " + advState.c + " mL/cmH2O");
+      lines.push("・呼気時定数 (RCexp): " + rcExp.toFixed(2) + " 秒 (推奨呼気時間 ≧ " + (rcExp * 3).toFixed(2) + " 秒)");
+      lines.push("・動脈血二酸化炭素分圧 (PaCO2): " + advState.paco2 + " mmHg (目標: " + advState.targetPaco2 + " mmHg)");
+      lines.push("・呼気終末二酸化炭素 (EtCO2): " + advState.etco2 + " mmHg");
+      lines.push("・推定死腔率 (Vd/Vt): " + (advVdRatio ? advVdRatio.textContent : "--"));
+      lines.push("・動脈血 pH: " + advState.ph.toFixed(2));
+      lines.push("・設定 PEEP: " + advState.peep + " cmH2O");
+      lines.push("");
+      lines.push("【3. 換気設定値】");
+      lines.push("・分時換気量 (MV): " + advState.setMv.toFixed(1) + " L/min");
+      lines.push("・一回換気量 (Vt): " + advState.setVt + " mL (" + (advState.setVt / pbwNum).toFixed(1) + " mL/kg PBW)");
+      lines.push("・呼吸回数 (RR): " + advState.setRr + " bpm");
+      lines.push("・吸気時間 (Ti): " + advState.setTi.toFixed(2) + " 秒 (呼気時間 Te: " + te.toFixed(2) + " 秒, I:E = 1:" + ieRatio + ")");
+      lines.push("");
+      lines.push("【4. 安全性・力学評価】");
+      lines.push("・プラトー圧 (Pplat): " + (advPplatVal ? advPplatVal.textContent : "--"));
+      lines.push("・駆動圧 (ΔP): " + (advDpVal ? advDpVal.textContent : "--"));
+      lines.push("・Otis最小呼吸仕事推奨点: " + (advGraphRecVal ? advGraphRecVal.textContent : "--"));
+    }
+
+    lines.push("");
+    lines.push("=======================================================");
+    lines.push("※ 下記のコードはアプリ自動読込用のシステムデータです。編集しないでください。");
+    lines.push("<<<VENT_CALC_DATA:" + JSON.stringify(systemData) + ">>>");
+
+    var text = lines.join("\n");
+
+    var blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+    function pad(n) { return String(n).padStart(2, "0"); }
+    var filename = "換気設定記録_" + now.getFullYear() + pad(now.getMonth() + 1) + pad(now.getDate()) + "_" + pad(now.getHours()) + pad(now.getMinutes()) + pad(now.getSeconds()) + ".txt";
+
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+
+    showToast("💾 換気設定データをテキストファイルに保存しました");
+  }
+
+  function importVentilationData(file) {
+    if (!file) return;
+
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        var text = e.target.result;
+        var data = null;
+
+        var match = text.match(/<<<VENT_CALC_DATA:(.*?)>>>/);
+        if (match && match[1]) {
+          data = JSON.parse(match[1]);
+        } else {
+          try {
+            data = JSON.parse(text);
+          } catch(err) {}
+        }
+
+        if (!data || !data.params) {
+          showToast("⚠️ 有効な換気記録データが見つかりませんでした", true);
+          return;
+        }
+
+        // 基本モードの復元
+        if (data.params.basic) {
+          var bp = data.params.basic;
+          if (bp.gender === "female") {
+            var bBtnFemale = document.getElementById("bBtnFemale");
+            if (bBtnFemale) bBtnFemale.click();
+          } else {
+            var bBtnMale = document.getElementById("bBtnMale");
+            if (bBtnMale) bBtnMale.click();
+          }
+          if (bp.height) setParamValue("bHeight", bp.height);
+          if (bp.mvPct !== undefined) setParamValue("bMvPct", bp.mvPct);
+        }
+
+        // 力学最適化モードの復元
+        if (data.params.opt) {
+          var op = data.params.opt;
+          if (op.gender === "female") {
+            var btnFemale = document.getElementById("btnFemale");
+            if (btnFemale) btnFemale.click();
+          } else {
+            var btnMale = document.getElementById("btnMale");
+            if (btnMale) btnMale.click();
+          }
+          if (op.height) setParamValue("aHeight", op.height);
+          if (op.etco2 !== undefined) setParamValue("etco2", op.etco2);
+          if (op.r !== undefined) setParamValue("r", op.r);
+          if (op.c !== undefined) setParamValue("c", op.c);
+          if (op.setMv !== undefined) setParamValue("setMv", op.setMv);
+          if (op.setVt !== undefined) setParamValue("setVt", op.setVt);
+          if (op.setRr !== undefined) setParamValue("setRr", op.setRr);
+          if (op.setTi !== undefined) setParamValue("setTi", op.setTi);
+        }
+
+        // 高度臨床モードの復元
+        if (data.params.adv) {
+          var ap = data.params.adv;
+          if (ap.gender === "female") {
+            var advBtnFemale = document.getElementById("advBtnFemale");
+            if (advBtnFemale) advBtnFemale.click();
+          } else {
+            var advBtnMale = document.getElementById("advBtnMale");
+            if (advBtnMale) advBtnMale.click();
+          }
+          if (ap.height) setParamValue("advHeight", ap.height);
+          if (ap.etco2 !== undefined) setParamValue("advEtco2", ap.etco2);
+          if (ap.r !== undefined) setParamValue("advR", ap.r);
+          if (ap.c !== undefined) setParamValue("advC", ap.c);
+          if (ap.paco2 !== undefined) setParamValue("advPaco2", ap.paco2);
+          if (ap.ph !== undefined) setParamValue("advPh", ap.ph);
+          if (ap.targetPaco2 !== undefined) setParamValue("advTargetPaco2", ap.targetPaco2);
+          if (ap.peep !== undefined) setParamValue("advPeep", ap.peep);
+          if (ap.setMv !== undefined) setParamValue("advSetMv", ap.setMv);
+          if (ap.setVt !== undefined) setParamValue("advSetVt", ap.setVt);
+          if (ap.setRr !== undefined) setParamValue("advSetRr", ap.setRr);
+          if (ap.setTi !== undefined) setParamValue("advSetTi", ap.setTi);
+        }
+
+        // モード切り替え
+        var tabBasic = document.getElementById("tabBasic");
+        var tabOpt = document.getElementById("tabOpt");
+        var tabAdv = document.getElementById("tabAdv");
+
+        if (data.activeMode === "basic" && tabBasic) {
+          tabBasic.click();
+        } else if (data.activeMode === "adv" && tabAdv) {
+          tabAdv.click();
+        } else if (tabOpt) {
+          tabOpt.click();
+        }
+
+        updateBasic();
+        recomputeRecommendation(false);
+        recomputeAdvRecommendation(false);
+
+        var timeLabel = "";
+        if (data.savedAt) {
+          var d = new Date(data.savedAt);
+          if (!isNaN(d.getTime())) {
+            timeLabel = " (" + formatDateTime(d) + ")";
+          }
+        }
+        showToast("✅ 換気設定データを復元しました" + timeLabel);
+      } catch (err) {
+        console.error("Import error:", err);
+        showToast("⚠️ データの解析に失敗しました", true);
+      }
+    };
+    reader.onerror = function() {
+      showToast("⚠️ ファイルの読み込みに失敗しました", true);
+    };
+    reader.readAsText(file);
+  }
+
+  function initExportImport() {
+    var btnExport = document.getElementById("btnExportData");
+    var btnImport = document.getElementById("btnImportData");
+    var fileInput = document.getElementById("fileInputData");
+
+    if (btnExport) btnExport.addEventListener("click", exportVentilationData);
+    if (btnImport && fileInput) {
+      btnImport.addEventListener("click", function() { fileInput.click(); });
+      fileInput.addEventListener("change", function(e) {
+        if (e.target.files && e.target.files[0]) {
+          importVentilationData(e.target.files[0]);
+        }
+        fileInput.value = "";
+      });
+    }
+  }
+
+  initExportImport();
   updateBasic();
   recomputeRecommendation(true);
   recomputeAdvRecommendation(true);
