@@ -1281,7 +1281,62 @@
   advSetRrSlider.addEventListener("input", (e) => handleAdvRrChange(parseInt(e.target.value, 10)));
   advSetTiSlider.addEventListener("input", (e) => handleAdvTiChange(parseFloat(e.target.value)));
 
+  // 取扱説明書 ＆ 初心者向け呼吸療法解説書 モーダル制御
+  function initManualModal() {
+    const modal = document.getElementById("manualModal");
+    const btnOpen = document.getElementById("btnOpenManual");
+    const btnClose = document.getElementById("btnCloseManual");
+    const btnBottomClose = document.getElementById("btnBottomCloseManual");
+    const overlay = document.getElementById("manualOverlay");
+    const btnTabApp = document.getElementById("btnTabManualApp");
+    const btnTabEdu = document.getElementById("btnTabManualEdu");
+    const contentApp = document.getElementById("manualTabApp");
+    const contentEdu = document.getElementById("manualTabEdu");
+
+    if (!modal || !btnOpen) return;
+
+    function openModal() {
+      modal.classList.remove("hidden");
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeModal() {
+      modal.classList.add("hidden");
+      document.body.style.overflow = "";
+    }
+
+    btnOpen.addEventListener("click", openModal);
+    if (btnClose) btnClose.addEventListener("click", closeModal);
+    if (btnBottomClose) btnBottomClose.addEventListener("click", closeModal);
+    if (overlay) overlay.addEventListener("click", closeModal);
+
+    // Escキーで閉じる
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !modal.classList.contains("hidden")) {
+        closeModal();
+      }
+    });
+
+    // タブ切り替え
+    if (btnTabApp && btnTabEdu && contentApp && contentEdu) {
+      btnTabApp.addEventListener("click", () => {
+        btnTabApp.classList.add("active");
+        btnTabEdu.classList.remove("active");
+        contentApp.style.display = "flex";
+        contentEdu.style.display = "none";
+      });
+
+      btnTabEdu.addEventListener("click", () => {
+        btnTabEdu.classList.add("active");
+        btnTabApp.classList.remove("active");
+        contentApp.style.display = "none";
+        contentEdu.style.display = "flex";
+      });
+    }
+  }
+
   // 初期化
+  initManualModal();
   updateBasic();
   recomputeRecommendation(true);
   recomputeAdvRecommendation(true);

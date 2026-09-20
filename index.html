@@ -8,16 +8,22 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&family=Noto+Sans+JP:wght@400;500;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=20260920_6" />
+  <link rel="stylesheet" href="style.css?v=20260920_7" />
 </head>
 <body>
   <div class="app-container">
     <!-- ヘッダー -->
     <header class="app-header">
-      <div class="header-main">
-        <div class="header-badge">VENTILATION OPTIMIZER & CLINICAL CDSS</div>
-        <h1 class="header-title">換気量計算ツール</h1>
-        <p class="header-subtitle">予測体重(PBW) & 呼吸力学 & 血液ガス(ABG)統合シミュレーター</p>
+      <div class="header-top-row">
+        <div class="header-main">
+          <div class="header-badge">VENTILATION OPTIMIZER & CLINICAL CDSS</div>
+          <h1 class="header-title">換気量計算ツール</h1>
+          <p class="header-subtitle">予測体重(PBW) & 呼吸力学 & 血液ガス(ABG)統合シミュレーター</p>
+        </div>
+        <button type="button" class="btn-manual-trigger" id="btnOpenManual" aria-label="説明書と解説書を開く">
+          <span class="btn-manual-icon">📖</span>
+          <span class="btn-manual-text">使い方・解説書</span>
+        </button>
       </div>
 
       <!-- モード切り替えタブ (3タブ体制) -->
@@ -560,6 +566,261 @@
   <div style="display:none;" id="tabAsv"></div>
   <div style="display:none;" id="viewAsv"></div>
 
-  <script src="app.js?v=20260920_6"></script>
+  <script src="app.js?v=20260920_7"></script>
+
+  <!-- 取扱説明書 ＆ 初心者向け呼吸療法解説書 モーダル -->
+  <div id="manualModal" class="manual-modal hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="manual-modal-overlay" id="manualOverlay"></div>
+    <div class="manual-modal-card">
+      <!-- モーダルヘッダー -->
+      <div class="manual-modal-header">
+        <div class="manual-header-title-wrap">
+          <div class="manual-modal-badge">MANUAL & CLINICAL GUIDE</div>
+          <h2 id="modalTitle" class="manual-modal-title">📖 アプリ取扱説明書 ＆ 呼吸療法解説書</h2>
+        </div>
+        <button type="button" class="btn-modal-close" id="btnCloseManual" aria-label="閉じる">✕</button>
+      </div>
+
+      <!-- モーダル内タブ切り替え -->
+      <div class="manual-nav-tabs">
+        <button type="button" class="manual-tab-btn active" id="btnTabManualApp">
+          <span class="m-tab-icon">📱</span>
+          <span class="m-tab-label">アプリ取扱説明書</span>
+        </button>
+        <button type="button" class="manual-tab-btn" id="btnTabManualEdu">
+          <span class="m-tab-icon">💡</span>
+          <span class="m-tab-label">やさしい呼吸療法解説書 (初心者向け)</span>
+        </button>
+      </div>
+
+      <!-- モーダル本文 (スクロール可能) -->
+      <div class="manual-modal-body">
+        <!-- ================= タブ1: アプリ取扱説明書 ================= -->
+        <div id="manualTabApp" class="manual-tab-content active">
+          <section class="manual-section">
+            <h3 class="manual-sec-title">🌟 本アプリの目的と特長</h3>
+            <p class="manual-p">本ツールは、<strong>ASV（適応支持換気）非搭載の一般人工呼吸器</strong>であっても、患者の予測体重（PBW）・肺力学（抵抗・コンプライアンス）・血液ガス（PaCO2）に基づき、<strong>「肺を痛めず、かつ呼吸仕事が最小となる最適な換気パラメータ（MV, Vt, RR, Ti, PEEP）」</strong>をベッドサイドで瞬時にシミュレーションできる臨床意思決定支援（CDSS）ツールです。</p>
+          </section>
+
+          <section class="manual-section">
+            <h3 class="manual-sec-title">🔀 3つのモードの選び方・特徴</h3>
+            <div class="manual-card-grid">
+              <div class="manual-mode-card">
+                <div class="m-mode-badge badge-basic">📋 基本モード</div>
+                <div class="m-mode-subtitle">初期設定・急患搬送時</div>
+                <p>患者の<strong>性別と身長</strong>を入力するだけで、ガイドライン準拠の<strong>予測体重（PBW）</strong>と推奨一回換気量（6〜8 mL/kg）、基準分時換気量（100 mL/kg/min）を直ちに算出します。緊急時や人工呼吸器装着直後のファーストセッティングに最適です。</p>
+              </div>
+              <div class="manual-mode-card">
+                <div class="m-mode-badge badge-opt">🫁 力学最適化モード</div>
+                <div class="m-mode-subtitle">肺力学モニタ連動・Otis最適化</div>
+                <p>人工呼吸器のモニタから得られる<strong>気道抵抗（R）・静肺コンプライアンス（C）・EtCO2</strong>を入力。Otis最小呼吸仕事理論に基づく推奨呼吸回数・換気量・吸気時間を導き出し、呼気時間不足ゾーンを自動除外した動的安全枠グラフで直感的に可視化します。</p>
+              </div>
+              <div class="manual-mode-card">
+                <div class="m-mode-badge badge-adv">🔬 高度臨床 (ABG & 圧) モード</div>
+                <div class="m-mode-subtitle">血液ガス補正・肺保護限界圧評価</div>
+                <p><strong>採血データ（PaCO2・pH）</strong>から必要分時換気量を自動補正。さらに<strong>設定PEEP</strong>を入力することで、肺保護基準である<strong>プラトー圧（Pplat ≦ 30 cmH2O）や駆動圧（ΔP ≦ 14 cmH2O）</strong>、呼気不全による<strong>Auto-PEEPリスク</strong>を厳密に評価・警告します。</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="manual-section">
+            <h3 class="manual-sec-title">🎛 直感的な3通りの操作方法</h3>
+            <div class="manual-tip-box">
+              <div class="tip-item">
+                <span class="tip-icon">🔘</span>
+                <div><strong>1. スライダー操作：</strong>ツマミをドラッグして広範囲の数値を直感的に素早く動かせます。</div>
+              </div>
+              <div class="tip-item">
+                <span class="tip-icon">➕➖</span>
+                <div><strong>2. ステッパーボタン：</strong>［−］［＋］ボタンをタップして、1単位ずつの正確な微調整が可能です（手袋着用時や片手操作でも確実）。</div>
+              </div>
+              <div class="tip-item">
+                <span class="tip-icon">🔢</span>
+                <div><strong>3. 数値直接入力：</strong>数値表示枠を直接タップするとテンキーが起動し、狙った数値を直接キー入力できます（Enterキーまたは枠外タップで即時反映）。</div>
+              </div>
+            </div>
+          </section>
+
+          <section class="manual-section">
+            <h3 class="manual-sec-title">🔗 4連連動スライダーのシミュレーション機構</h3>
+            <p class="manual-p">ステップ3の換気調整スライダーは、臨床生理学の公式に基づきリアルタイムに連動します：</p>
+            <ul class="manual-list">
+              <li><strong>分時換気量（MV）を変更：</strong>換気需要に合わせて一回換気量（Vt）と呼吸回数（RR）、吸気時間（Ti）が自動追従します。</li>
+              <li><strong>一回換気量（Vt）を変更：</strong>設定した分時換気量を維持するため、呼吸回数（RR）が自動反比例連動します（Vtを増やせばRRが低下）。</li>
+              <li><strong>呼吸回数（RR）を変更：</strong>一回換気量を維持したまま、分時換気量（MV）が追従計算されます。</li>
+              <li><strong>吸気時間（Ti）を変更：</strong>I:E比および呼気時間（Te）がリアルタイムに再計算され、呼気不足アラートが連動します。</li>
+            </ul>
+          </section>
+
+          <section class="manual-section">
+            <h3 class="manual-sec-title">📊 セーフティーグラフィック（Otis曲線＆安全枠）の読み方</h3>
+            <div class="manual-chart-guide">
+              <div class="guide-item">
+                <span class="symbol-circle">●</span>
+                <div><strong>現在設定点（黄色い円）：</strong>あなたの現在スライダー設定値（RR / Vt）のプロット位置です。</div>
+              </div>
+              <div class="guide-item">
+                <span class="symbol-diamond">◆</span>
+                <div><strong>Otis推奨点（青い菱形/三角）：</strong>呼吸仕事率（WOB）が物理的に最小となる理想のプロット位置です。</div>
+              </div>
+              <div class="guide-item">
+                <span class="symbol-frame">▢</span>
+                <div><strong>動的安全枠（水色の点線枠）：</strong>患者の呼気時定数（3×RCexp）から算出した「安全に息を吐き切れる呼気時間制限」と「肺保護上限」を満たす許容エリアです。<strong>黄色い円（●）がこの枠内に収まるように換気を設定</strong>してください。</div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- ================= タブ2: 初心者向け呼吸療法解説書 ================= -->
+        <div id="manualTabEdu" class="manual-tab-content" style="display: none;">
+          <div class="edu-intro-card">
+            <div class="edu-intro-icon">👩‍⚕️👨‍⚕️</div>
+            <div class="edu-intro-text">
+              <strong>人工呼吸管理に携わるすべてのスタッフへ：</strong><br />
+              「人工呼吸器の設定って難しそう…」「なぜこの数字にするのかよく分からない…」という疑問を、身近な道具（風船やストロー）に例えてやさしく解説します。ここを押さえるだけで、ベッドサイドの観察力と安全性が劇的に向上します！
+            </div>
+          </div>
+
+          <!-- 第1章 -->
+          <div class="edu-chapter-card">
+            <div class="chapter-header">
+              <span class="chapter-badge">第 1 章</span>
+              <h4 class="chapter-title">なぜ体重計の重さではなく「予測体重 (PBW)」を使うの？</h4>
+            </div>
+            <div class="chapter-body">
+              <div class="key-point-box">
+                <span class="kp-icon">💡</span>
+                <span class="kp-text"><strong>核心ポイント：</strong>「人は太っても、肺のサイズは太りません！」</span>
+              </div>
+              <p class="chapter-p">患者さんの体重が50kgから脂肪で80kgに増えても、肋骨に囲まれた胸郭や<strong>肺の容積（大きさ）は生まれつきの骨格（身長と性別）で決まっており、全く変わりません</strong>。</p>
+              <p class="chapter-p">もし実体重の80kgに合わせて換気量（8 mL/kg ＝ 640 mL）を入れてしまうと、50kg用の小さな肺にとっては強烈な過膨張となり、肺胞が破裂したり（気胸）、炎症が悪化して肺が壊れてしまいます。</p>
+              <p class="chapter-p">そのため、世界中のガイドラインで<strong>「人工呼吸器の設定は、実体重ではなく必ず身長から計算した予測体重（PBW）で行う」</strong>と定められています。</p>
+            </div>
+          </div>
+
+          <!-- 第2章 -->
+          <div class="edu-chapter-card">
+            <div class="chapter-header">
+              <span class="chapter-badge">第 2 章</span>
+              <h4 class="chapter-title">一回換気量（Vt）はなぜ「6〜8 mL/kg」なの？（肺保護換気戦略）</h4>
+            </div>
+            <div class="chapter-body">
+              <div class="key-point-box">
+                <span class="kp-icon">🎈</span>
+                <span class="kp-text"><strong>核心ポイント：</strong>「風船を限界までパンパンに膨らませ続けない」</span>
+              </div>
+              <p class="chapter-p">昔（2000年以前）は「たくさん換気すれば血液中の酸素が増える」と考え、10〜15 mL/kgもの大換気量を入れていました。しかし、大規模な研究（ARDSNet研究）により、大きな換気量は正常な肺胞まで引き裂き、死亡率を大幅に悪化させることが判明しました。</p>
+              <p class="chapter-p">特に肺炎やARDS（急性呼吸促迫症候群）の肺は、全体が均一に使えるわけではなく、ガス交換ができる健康な肺胞はごく一部しか残っていません（<strong>Baby Lung: 赤ちゃんの肺ほどの大きさ</strong>）。</p>
+              <p class="chapter-p">小さな肺胞をこれ以上壊さないため、<strong>「一回換気量は6〜8 mL/kg（重症時は4〜6 mL/kg）に抑える」</strong>ことが、人工呼吸管理で最も確実に患者の命を救う基本ルール（肺保護換気）です。</p>
+            </div>
+          </div>
+
+          <!-- 第3章 -->
+          <div class="edu-chapter-card">
+            <div class="chapter-header">
+              <span class="chapter-badge">第 3 章</span>
+              <h4 class="chapter-title">気道抵抗（R）とコンプライアンス（C）って何？</h4>
+            </div>
+            <div class="chapter-body">
+              <div class="analogy-grid">
+                <div class="analogy-card">
+                  <div class="analogy-title">🌬 気道抵抗 (R) ＝「ストローの細さ」</div>
+                  <div class="analogy-sub">正常値: 5 〜 10 cmH2O/(L/s)</div>
+                  <p>空気が気道を通るときの「通りにくさ・摩擦抵抗」です。タピオカ用の太いストローなら楽に息が吸えますが、細いマドラーで息を吸うとものすごい力が必要です。</p>
+                  <ul class="analogy-list">
+                    <li>痰がゴロゴロ詰まっている</li>
+                    <li>気管チューブが細すぎる・噛んでいる</li>
+                    <li>喘息やCOPDで気管支が細く収縮している</li>
+                  </ul>
+                  <p class="analogy-foot">これらが起きると気道抵抗（R）が急上昇します。</p>
+                </div>
+                <div class="analogy-card">
+                  <div class="analogy-title">🎈 コンプライアンス (C) ＝「風船の柔らかさ」</div>
+                  <div class="analogy-sub">正常値: 50 〜 80 mL/cmH2O</div>
+                  <p>肺と胸郭の「膨らみやすさ・柔らかさ」です。柔らかい風船は少しの力で膨らみますが、硬い新品のゴム風船は強い圧力をかけないと膨らみません。</p>
+                  <ul class="analogy-list">
+                    <li>ARDSや重症肺炎で肺胞が水浸し</li>
+                    <li>間質性肺炎で肺が線維化してガチガチ</li>
+                    <li>無気肺で肺胞が潰れて硬くなっている</li>
+                  </ul>
+                  <p class="analogy-foot">これらが起きるとコンプライアンス（C）が著明に低下（20〜30以下）します。</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 第4章 -->
+          <div class="edu-chapter-card">
+            <div class="chapter-header">
+              <span class="chapter-badge">第 4 章</span>
+              <h4 class="chapter-title">呼気時定数（RCexp）とAuto-PEEP（吐き切れない危険）</h4>
+            </div>
+            <div class="chapter-body">
+              <div class="key-point-box alert-kp">
+                <span class="kp-icon">⚠️</span>
+                <span class="kp-text"><strong>超重要：</strong>息を吐き切るには最低でも「3 × 時定数」の秒数が必要です！</span>
+              </div>
+              <p class="chapter-p">人工呼吸器は息を機械の力で押し込みますが、<strong>息を吐くときは機械が吸い出しているのではなく、肺自身の縮む力（ゴムの弾性）だけで自然に吐き出されています</strong>。</p>
+              <p class="chapter-p">肺の中の空気が吐き出されるスピードは、抵抗（R）とコンプライアンス（C）の積である<strong>「呼気時定数（RCexp ＝ R × C）」</strong>で決まります。</p>
+              <div class="time-constant-box">
+                <div class="tc-item"><strong>1 × RCexp 時間経過：</strong>約 63% しか吐き出せていない</div>
+                <div class="tc-item"><strong>2 × RCexp 時間経過：</strong>約 86% しか吐き出せていない</div>
+                <div class="tc-item tc-safe"><strong>3 × RCexp 時間経過：</strong>約 95% 吐き出し完了（安全圏！）</div>
+              </div>
+              <p class="chapter-p">もし呼吸回数を増やしすぎたり吸気時間を長くしすぎて、<strong>呼気時間（Te）が 3×RCexp より短くなると、吐き切る前に次の呼吸が始まってしまいます</strong>。</p>
+              <p class="chapter-p">行き場を失った空気は肺の奥にどんどん閉じ込められ、<strong>「空気トラッピング（内因性PEEP / Auto-PEEP）」</strong>が発生します。肺がパンパンに膨らみ続けて胸の中の静脈を圧迫し、<strong>心臓へ血液が戻らなくなって血圧が急降下（ショック）</strong>したり、最悪の場合は<strong>肺が破裂（緊張性気胸）</strong>して心停止に至ります。</p>
+            </div>
+          </div>
+
+          <!-- 第5章 -->
+          <div class="edu-chapter-card">
+            <div class="chapter-header">
+              <span class="chapter-badge">第 5 章</span>
+              <h4 class="chapter-title">命を守る2大限界圧（駆動圧 ΔP ≦ 14、プラトー圧 Pplat ≦ 30）</h4>
+            </div>
+            <div class="chapter-body">
+              <p class="chapter-p">人工呼吸器の画面にはいろいろな圧が表示されますが、肺胞を壊さないために看護師・CE・医師が絶対にチェックすべき2大限界値があります：</p>
+              <div class="limit-press-grid">
+                <div class="limit-card">
+                  <div class="limit-badge badge-p-plat">限界 1</div>
+                  <h5 class="limit-title">プラトー圧 (Pplat) ≦ 30 cmH2O</h5>
+                  <p>息を吸い切って空気の流れが止まった瞬間（インスピラトリーホールド時）に、肺胞そのものにかかる静止圧です。最高気道圧（Ppeak）と違ってストローの摩擦圧が含まれないため、「肺胞の本当の負担」を表します。<strong>30 cmH2O を超えると肺胞破裂のリスクが急上昇</strong>します。</p>
+                </div>
+                <div class="limit-card">
+                  <div class="limit-badge badge-dp">限界 2</div>
+                  <h5 class="limit-title">駆動圧 (Driving Pressure: ΔP) ≦ 14 cmH2O</h5>
+                  <p>「プラトー圧 － 設定PEEP」で計算される値（または Vt ÷ C）です。一回の呼吸で、硬い肺胞をどれだけ無理やりこじ開けたかを示します。<strong>ΔP が 14 cmH2O を超えると患者の死亡率が跳ね上がる</strong>ことが数多くの臨床試験で証明されています。超えている場合は、Vtを下げる（換気量を減らす）調整が必要です。</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 第6章 -->
+          <div class="edu-chapter-card">
+            <div class="chapter-header">
+              <span class="chapter-badge">第 6 章</span>
+              <h4 class="chapter-title">血液ガス（PaCO2）とEtCO2の付き合い方（死腔の罠）</h4>
+            </div>
+            <div class="chapter-body">
+              <p class="chapter-p">カプノメータで呼気の二酸化炭素（EtCO2）をモニタリングしているとき、「EtCO2が35mmHgで正常だから換気はバッチリ！」と安心していませんか？ ここに大きな落とし穴があります。</p>
+              <p class="chapter-p">通常、動脈血のPaCO2と呼気のEtCO2の差は 2〜5 mmHg 程度ですが、<strong>重症肺炎・ARDS・肺塞栓・肺気腫などでは「空気は入るのに血液が流れていない肺胞（死腔）」が増大</strong>します。</p>
+              <p class="chapter-p">死腔が増えると、EtCO2は低めに出るのに、実際の動脈血（PaCO2）は60〜80mmHgまで跳ね上がっているという「見かけの正常」が生じます。</p>
+              <div class="key-point-box">
+                <span class="kp-icon">🩸</span>
+                <span class="kp-text"><strong>臨床Tips：</strong>定期的な動脈血液ガス（ABG）測定を行い、PaCO2とEtCO2の較差を確認しましょう。本ツールの「高度臨床モード」を使えば、実測PaCO2を入力するだけで目標PaCO2に必要な分時換気量（MV）が瞬時に逆算できます。</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- モーダルフッター -->
+      <div class="manual-modal-footer">
+        <span class="manual-footer-note">※ 本解説書を開閉しても、メイン画面の計算・入力状態はすべて保持されます。</span>
+        <button type="button" class="btn-modal-primary-close" id="btnBottomCloseManual">閉じる</button>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>

@@ -1212,3 +1212,731 @@ body {
   .abg-inputs-grid { grid-template-columns: 1fr; }
   .box-target-paco2 { grid-column: auto; }
 }
+
+
+/* ==========================================================================
+   取扱説明書 ＆ 初心者向け呼吸療法解説書 モーダル スタイル
+   ========================================================================== */
+
+/* ヘッダー上部レイアウト */
+.header-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+
+.btn-manual-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(6, 182, 212, 0.22));
+  border: 1px solid rgba(16, 185, 129, 0.45);
+  border-radius: 9999px;
+  color: #a7f3d0;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.18);
+  flex-shrink: 0;
+}
+
+.btn-manual-trigger:hover {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.3), rgba(6, 182, 212, 0.35));
+  border-color: rgba(52, 211, 153, 0.7);
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
+}
+
+.btn-manual-trigger:active {
+  transform: translateY(0);
+}
+
+.btn-manual-icon {
+  font-size: 1.15rem;
+}
+
+/* モーダル基本構造 */
+.manual-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.manual-modal.hidden {
+  display: none !important;
+}
+
+.manual-modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 12, 22, 0.78);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.manual-modal-card {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 880px;
+  max-height: 90vh;
+  background: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 20px;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: modalFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* モーダルヘッダー */
+.manual-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 20px 24px 16px;
+  background: rgba(30, 41, 59, 0.6);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.manual-header-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.manual-modal-badge {
+  display: inline-block;
+  align-self: flex-start;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+}
+
+.manual-modal-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #f8fafc;
+  line-height: 1.3;
+}
+
+.btn-modal-close {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.btn-modal-close:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+  transform: scale(1.05);
+}
+
+/* モーダル内タブ切り替え */
+.manual-nav-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 12px 24px;
+  background: rgba(15, 23, 42, 0.8);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.manual-tab-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 16px;
+  background: rgba(30, 41, 59, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  color: #94a3b8;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.manual-tab-btn:hover {
+  background: rgba(51, 65, 85, 0.6);
+  color: #e2e8f0;
+}
+
+.manual-tab-btn.active {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(99, 102, 241, 0.25));
+  border-color: rgba(56, 189, 248, 0.5);
+  color: #38bdf8;
+  box-shadow: 0 4px 12px rgba(56, 189, 248, 0.15);
+}
+
+.m-tab-icon {
+  font-size: 1.1rem;
+}
+
+/* モーダル本文エリア */
+.manual-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.3) transparent;
+}
+
+.manual-modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+.manual-modal-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+.manual-modal-body::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 4px;
+}
+
+.manual-tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* セクションと見出し */
+.manual-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.manual-sec-title {
+  margin: 0;
+  font-size: 1.12rem;
+  font-weight: 800;
+  color: #f1f5f9;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.manual-p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: #cbd5e1;
+}
+
+.manual-list {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: #cbd5e1;
+}
+
+/* モードカードグリッド */
+.manual-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.manual-mode-card {
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.m-mode-badge {
+  font-size: 0.9rem;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 8px;
+  align-self: flex-start;
+}
+
+.badge-basic {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.badge-opt {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.badge-adv {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.m-mode-subtitle {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+.manual-mode-card p {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: #cbd5e1;
+}
+
+/* 操作Tipsボックス */
+.manual-tip-box {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: rgba(30, 41, 59, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.tip-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: #e2e8f0;
+}
+
+.tip-icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* グラフ解説 */
+.manual-chart-guide {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.guide-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: #cbd5e1;
+}
+
+.symbol-circle {
+  color: #facc15;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.symbol-diamond {
+  color: #38bdf8;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.symbol-frame {
+  color: #22d3ee;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+/* ================= 呼吸療法解説書 (初心者向け) スタイル ================= */
+.edu-intro-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.12), rgba(99, 102, 241, 0.12));
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 16px;
+  padding: 16px 20px;
+}
+
+.edu-intro-icon {
+  font-size: 2.2rem;
+  flex-shrink: 0;
+}
+
+.edu-intro-text {
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: #e2e8f0;
+}
+
+.edu-chapter-card {
+  background: rgba(30, 41, 59, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.chapter-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 10px;
+}
+
+.chapter-badge {
+  font-size: 0.75rem;
+  font-weight: 800;
+  background: #3b82f6;
+  color: #ffffff;
+  padding: 4px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+
+.chapter-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #f8fafc;
+  line-height: 1.4;
+}
+
+.chapter-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.chapter-p {
+  margin: 0;
+  font-size: 0.93rem;
+  line-height: 1.68;
+  color: #cbd5e1;
+}
+
+/* 核心ポイントボックス */
+.key-point-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: rgba(56, 189, 248, 0.1);
+  border-left: 4px solid #38bdf8;
+  border-radius: 0 10px 10px 0;
+  padding: 12px 16px;
+  font-size: 0.94rem;
+  line-height: 1.55;
+  color: #e0f2fe;
+}
+
+.key-point-box.alert-kp {
+  background: rgba(239, 68, 68, 0.12);
+  border-left-color: #ef4444;
+  color: #fecaca;
+}
+
+.kp-icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+/* ストロー・風船の例えグリッド */
+.analogy-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.analogy-card {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.analogy-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #38bdf8;
+}
+
+.analogy-sub {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+.analogy-card p {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: #cbd5e1;
+}
+
+.analogy-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: #fca5a5;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.analogy-foot {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #f87171 !important;
+}
+
+/* 呼気時定数ボックス */
+.time-constant-box {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 0.88rem;
+}
+
+.tc-item {
+  color: #94a3b8;
+}
+
+.tc-safe {
+  color: #34d399;
+  font-weight: 700;
+}
+
+/* 2大限界圧グリッド */
+.limit-press-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.limit-card {
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.limit-badge {
+  align-self: flex-start;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.badge-p-plat {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.badge-dp {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fcd34d;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.limit-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #f8fafc;
+}
+
+.limit-card p {
+  margin: 0;
+  font-size: 0.86rem;
+  line-height: 1.55;
+  color: #cbd5e1;
+}
+
+/* モーダルフッター */
+.manual-modal-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 24px;
+  background: rgba(30, 41, 59, 0.6);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.manual-footer-note {
+  font-size: 0.82rem;
+  color: #94a3b8;
+}
+
+.btn-modal-primary-close {
+  padding: 10px 24px;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  border: none;
+  border-radius: 10px;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  flex-shrink: 0;
+}
+
+.btn-modal-primary-close:hover {
+  background: linear-gradient(135deg, #60a5fa, #3b82f6);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+}
+
+/* スマホ最適化 (レスポンシブ) */
+@media (max-width: 640px) {
+  .header-top-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .btn-manual-trigger {
+    align-self: center;
+    width: 100%;
+    justify-content: center;
+    padding: 10px 16px;
+    font-size: 0.9rem;
+  }
+
+  .manual-modal {
+    padding: 8px;
+  }
+
+  .manual-modal-card {
+    max-height: 94vh;
+    border-radius: 14px;
+  }
+
+  .manual-modal-header {
+    padding: 16px 16px 12px;
+  }
+
+  .manual-modal-title {
+    font-size: 1.05rem;
+  }
+
+  .manual-nav-tabs {
+    padding: 8px 12px;
+    gap: 6px;
+  }
+
+  .manual-tab-btn {
+    padding: 9px 8px;
+    font-size: 0.82rem;
+    gap: 4px;
+  }
+
+  .m-tab-icon {
+    font-size: 0.95rem;
+  }
+
+  .manual-modal-body {
+    padding: 16px 12px;
+    gap: 18px;
+  }
+
+  .manual-modal-footer {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 10px;
+    padding: 12px 16px;
+  }
+
+  .btn-modal-primary-close {
+    width: 100%;
+  }
+
+  .manual-footer-note {
+    text-align: center;
+    font-size: 0.75rem;
+  }
+
+  .edu-intro-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 14px;
+  }
+
+  .edu-chapter-card {
+    padding: 16px 12px;
+  }
+}
