@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>人工呼吸設定アシスタント | 基本換気量 & ASV力学最適化</title>
-  <meta name="description" content="基本換気量計算（IBW・%MV調整）と、実測R・C・EtCO2に基づくASV力学最適化・手動連動シミュレーション（Otis理論・吸気時間Ti・セーフティーフレーム）の臨床支援アプリ。" />
+  <title>人工呼吸設定アシスタント | 基本換気量 & 力学最適化</title>
+  <meta name="description" content="基本換気量計算（PBW・%MV調整）と、実測R・C・EtCO2に基づく力学最適化・手動連動シミュレーション（Otis理論・吸気時間Ti・セーフティーフレーム）の臨床支援アプリ。" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=20260920_1" />
+  <link rel="stylesheet" href="style.css?v=20260920_2" />
 </head>
 <body>
   <div class="app-container">
@@ -21,17 +21,17 @@
       <div class="mode-tabs">
         <button type="button" class="tab-btn" id="tabBasic">
           <span class="tab-icon">📋</span>
-          <span class="tab-text">基本モード (IBW換気量計算)</span>
+          <span class="tab-text">基本モード (PBW換気量計算)</span>
         </button>
-        <button type="button" class="tab-btn active" id="tabAsv">
+        <button type="button" class="tab-btn active" id="tabOpt">
           <span class="tab-icon">🫁</span>
-          <span class="tab-text">ASV・力学最適化モード</span>
+          <span class="tab-text">力学最適化モード</span>
         </button>
       </div>
     </header>
 
     <!-- ==============================================
-         モード 1: 基本モード (以前の画面仕様)
+         モード 1: 基本モード
          ============================================== -->
     <div id="viewBasic" class="view-panel" style="display: none;">
       <main class="main-card">
@@ -73,25 +73,25 @@
         <section class="card-section">
           <div class="section-header">
             <span class="step-num">2</span>
-            <h2>計算結果 (適正体重・一回換気量・分時換気量)</h2>
+            <h2>計算結果 (予測体重・一回換気量・分時換気量)</h2>
           </div>
 
-          <!-- 適正体重 -->
+          <!-- 予測体重 (PBW) -->
           <div class="calc-strip">
             <div class="strip-item">
-              <span class="strip-label">適正体重 (IBW: Devine式)</span>
+              <span class="strip-label">予測体重 (PBW: Devine式)</span>
               <div class="strip-val-wrap">
-                <span class="strip-val text-teal" id="bIbwDisplay">66.0</span>
+                <span class="strip-val text-teal" id="bPbwDisplay">66.0</span>
                 <span class="strip-unit">kg</span>
               </div>
             </div>
           </div>
 
-          <!-- 一回換気量 (適正体重 × 6〜8) -->
+          <!-- 一回換気量 (予測体重 × 6〜8) -->
           <div class="result-card-box">
             <div class="box-header">
               <span class="box-title">一回換気量 (TV)</span>
-              <span class="box-tag">IBW × 6 〜 8 mL/kg</span>
+              <span class="box-tag">PBW × 6 〜 8 mL/kg</span>
             </div>
             <div class="range-display">
               <div class="range-side">
@@ -106,11 +106,11 @@
             </div>
           </div>
 
-          <!-- 分時換気量 (適正体重 × 100) & %調整 -->
+          <!-- 分時換気量 (予測体重 × 100) & %調整 -->
           <div class="result-card-box box-amber">
             <div class="box-header">
               <span class="box-title">分時換気量 (MV)</span>
-              <span class="box-tag">IBW × 100 mL/min (0.1 L/kg)</span>
+              <span class="box-tag">PBW × 100 mL/min (0.1 L/kg)</span>
             </div>
 
             <div class="mv-base-row">
@@ -215,15 +215,15 @@
     </div>
 
     <!-- ==============================================
-         モード 2: ASV・力学最適化モード (高度モード)
+         モード 2: 力学最適化モード (高度モード)
          ============================================== -->
-    <div id="viewAsv" class="view-panel">
+    <div id="viewOpt" class="view-panel">
       <main class="main-card">
         <!-- 1. 患者情報 -->
         <section class="card-section">
           <div class="section-header">
             <span class="step-num">1</span>
-            <h2>患者基本情報 (理想体重 IBW)</h2>
+            <h2>患者基本情報 (予測体重 PBW)</h2>
           </div>
 
           <div class="gender-selector">
@@ -252,18 +252,18 @@
             </div>
           </div>
 
-          <!-- IBW & TV基準範囲 (IBW×6〜8) -->
+          <!-- PBW & TV基準範囲 (PBW×6〜8) -->
           <div class="calc-strip">
             <div class="strip-item">
-              <span class="strip-label">理想体重 (IBW)</span>
+              <span class="strip-label">予測体重 (PBW)</span>
               <div class="strip-val-wrap">
-                <span class="strip-val text-teal" id="aIbwDisplay">66.0</span>
+                <span class="strip-val text-teal" id="aPbwDisplay">66.0</span>
                 <span class="strip-unit">kg</span>
               </div>
             </div>
             <div class="strip-divider"></div>
             <div class="strip-item">
-              <span class="strip-label">TV 基準範囲 (IBW × 6〜8)</span>
+              <span class="strip-label">TV 基準範囲 (PBW × 6〜8)</span>
               <div class="strip-val-wrap">
                 <span class="strip-val text-sky" id="aTvRangeDisplay">396 〜 528</span>
                 <span class="strip-unit">mL</span>
@@ -384,7 +384,6 @@
                 <span class="rec-val" id="recMvL">6.6</span>
                 <span class="rec-unit">L/min</span>
               </div>
-              <!-- MV操作スライダー -->
               <div class="card-slider-wrap">
                 <input type="range" id="setMvSlider" class="custom-range range-amber" min="2.0" max="22.0" step="0.1" value="6.6" />
               </div>
@@ -402,11 +401,10 @@
                 <span class="rec-val text-sky" id="recVt">470</span>
                 <span class="rec-unit">mL</span>
               </div>
-              <!-- Vt操作スライダー -->
               <div class="card-slider-wrap">
                 <input type="range" id="setVtSlider" class="custom-range" min="200" max="950" step="10" value="470" />
               </div>
-              <div class="rec-sub"><span id="recVtPerKg">7.1</span> mL/kg IBW</div>
+              <div class="rec-sub"><span id="recVtPerKg">7.1</span> mL/kg PBW</div>
               <div class="rec-note">基準 (×6〜8): <span id="recTvStdNote">396〜528</span>mL</div>
             </div>
 
@@ -420,7 +418,6 @@
                 <span class="rec-val text-teal" id="recRr">14</span>
                 <span class="rec-unit">回/分</span>
               </div>
-              <!-- RR操作スライダー -->
               <div class="card-slider-wrap">
                 <input type="range" id="setRrSlider" class="custom-range range-teal" min="6" max="42" step="1" value="14" />
               </div>
@@ -438,7 +435,6 @@
                 <span class="rec-val text-purple" id="recTi">1.00</span>
                 <span class="rec-unit">秒</span>
               </div>
-              <!-- Ti操作スライダー -->
               <div class="card-slider-wrap">
                 <input type="range" id="setTiSlider" class="custom-range range-purple" min="0.40" max="2.20" step="0.05" value="1.00" />
               </div>
@@ -460,7 +456,7 @@
           </div>
         </section>
 
-        <!-- 4. ASVグラフィック画面 -->
+        <!-- 4. 換気特性グラフィック画面 -->
         <section class="card-section">
           <div class="section-header">
             <span class="step-num">4</span>
@@ -468,7 +464,7 @@
           </div>
 
           <div class="canvas-wrapper">
-            <canvas id="asvCanvas" width="560" height="280"></canvas>
+            <canvas id="optCanvas" width="560" height="280"></canvas>
             <div class="canvas-legend">
               <div class="legend-pill">
                 <span class="legend-dot target-dot"></span>
@@ -503,7 +499,10 @@
   <input type="hidden" id="heightSlider" value="170" />
   <input type="hidden" id="minVolSlider" value="100" />
   <span style="display:none;" id="minVolDisplay"></span>
+  <div style="display:none;" id="asvCanvas"></div>
+  <div style="display:none;" id="tabAsv"></div>
+  <div style="display:none;" id="viewAsv"></div>
 
-  <script src="app.js?v=20260920_1"></script>
+  <script src="app.js?v=20260920_2"></script>
 </body>
 </html>

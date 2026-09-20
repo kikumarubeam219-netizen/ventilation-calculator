@@ -1,6 +1,6 @@
 /**
  * 人工呼吸設定アシスタント
- * 基本モード (IBW & %MV計算) ＆ ASV力学最適化モード (インタラクティブ手動連動シミュレーション)
+ * 基本モード (PBW & %MV計算) ＆ 力学最適化モード (インタラクティブ手動連動シミュレーション)
  */
 
 (function () {
@@ -8,62 +8,62 @@
 
   // ===== 状態管理 =====
   const state = {
-    currentMode: "asv", // "basic" | "asv"
+    currentMode: "opt", // "basic" | "opt"
     gender: "male",
     height: 170,
-    ibw: 66.0,
+    pbw: 66.0,
 
     // 基本モード用
     basicPercent: 100,
 
-    // ASVモード 生体入力値
+    // 力学最適化モード 生体入力値
     etco2: 38,
     r: 10,
     c: 50,
 
-    // ASVモード 推奨値 (Otis理論計算値)
+    // 力学最適化モード 推奨値 (Otis理論計算値)
     recMv: 6.6,
     recVt: 470,
     recRr: 14,
     recTi: 1.00,
 
-    // ASVモード 現在設定値 (手動連動スライダー値)
+    // 力学最適化モード 現在設定値 (手動連動スライダー値)
     setMv: 6.6,
     setVt: 470,
     setRr: 14,
     setTi: 1.00
   };
 
-  function calcIBW(gender, heightCm) {
+  function calcPBW(gender, heightCm) {
     const base = gender === "male" ? 50.0 : 45.5;
-    const ibw = base + 0.91 * (heightCm - 152.4);
-    return Math.round(ibw * 10) / 10;
+    const pbw = base + 0.91 * (heightCm - 152.4);
+    return Math.round(pbw * 10) / 10;
   }
 
   // ===== タブ切り替え =====
   const tabBasic = document.getElementById("tabBasic");
-  const tabAsv = document.getElementById("tabAsv");
+  const tabOpt = document.getElementById("tabOpt");
   const viewBasic = document.getElementById("viewBasic");
-  const viewAsv = document.getElementById("viewAsv");
+  const viewOpt = document.getElementById("viewOpt");
 
-  if (tabBasic && tabAsv) {
+  if (tabBasic && tabOpt) {
     tabBasic.addEventListener("click", () => switchMode("basic"));
-    tabAsv.addEventListener("click", () => switchMode("asv"));
+    tabOpt.addEventListener("click", () => switchMode("opt"));
   }
 
   function switchMode(mode) {
     state.currentMode = mode;
     tabBasic.classList.toggle("active", mode === "basic");
-    tabAsv.classList.toggle("active", mode === "asv");
+    tabOpt.classList.toggle("active", mode === "opt");
 
     viewBasic.style.display = mode === "basic" ? "block" : "none";
-    viewAsv.style.display = mode === "asv" ? "block" : "none";
+    viewOpt.style.display = mode === "opt" ? "block" : "none";
 
     syncInputs();
     if (mode === "basic") {
       updateBasic();
     } else {
-      recomputeAsvRecommendation(true);
+      recomputeRecommendation(true);
     }
   }
 
@@ -86,7 +86,7 @@
   const bBtnFemale = document.getElementById("bBtnFemale");
   const bHeightSlider = document.getElementById("bHeightSlider");
   const bHeightDisplay = document.getElementById("bHeightDisplay");
-  const bIbwDisplay = document.getElementById("bIbwDisplay");
+  const bPbwDisplay = document.getElementById("bPbwDisplay");
   const bTvMin = document.getElementById("bTvMin");
   const bTvMax = document.getElementById("bTvMax");
   const bMvBaseL = document.getElementById("bMvBaseL");
@@ -118,15 +118,15 @@
   });
 
   function updateBasic() {
-    state.ibw = calcIBW(state.gender, state.height);
-    bIbwDisplay.textContent = state.ibw.toFixed(1);
+    state.pbw = calcPBW(state.gender, state.height);
+    bPbwDisplay.textContent = state.pbw.toFixed(1);
 
-    const tvMin = Math.round(state.ibw * 6);
-    const tvMax = Math.round(state.ibw * 8);
+    const tvMin = Math.round(state.pbw * 6);
+    const tvMax = Math.round(state.pbw * 8);
     bTvMin.textContent = tvMin;
     bTvMax.textContent = tvMax;
 
-    const mvBaseL = Math.round(state.ibw * 0.1 * 10) / 10;
+    const mvBaseL = Math.round(state.pbw * 0.1 * 10) / 10;
     const mvBaseMl = Math.round(mvBaseL * 1000);
     bMvBaseL.textContent = mvBaseL.toFixed(1);
     bMvBaseMl.textContent = mvBaseMl.toLocaleString();
@@ -144,13 +144,13 @@
   }
 
   // ==========================================
-  // 2. ASV・力学最適化モード (viewAsv)
+  // 2. 力学最適化モード (viewOpt)
   // ==========================================
   const aBtnMale = document.getElementById("aBtnMale");
   const aBtnFemale = document.getElementById("aBtnFemale");
   const aHeightSlider = document.getElementById("aHeightSlider");
   const aHeightDisplay = document.getElementById("aHeightDisplay");
-  const aIbwDisplay = document.getElementById("aIbwDisplay");
+  const aPbwDisplay = document.getElementById("aPbwDisplay");
   const aTvRangeDisplay = document.getElementById("aTvRangeDisplay");
 
   const presetNorm = document.getElementById("presetNorm");
@@ -197,7 +197,7 @@
   const dpDisplay = document.getElementById("dpDisplay");
   const dpStatus = document.getElementById("dpStatus");
 
-  const canvas = document.getElementById("asvCanvas");
+  const canvas = document.getElementById("optCanvas");
   const ctx = canvas ? canvas.getContext("2d") : null;
   const graphTargetVal = document.getElementById("graphTargetVal");
   const graphRecVal = document.getElementById("graphRecVal");
@@ -206,40 +206,40 @@
   aBtnMale.addEventListener("click", () => {
     state.gender = "male";
     syncInputs();
-    recomputeAsvRecommendation(true);
+    recomputeRecommendation(true);
   });
   aBtnFemale.addEventListener("click", () => {
     state.gender = "female";
     syncInputs();
-    recomputeAsvRecommendation(true);
+    recomputeRecommendation(true);
   });
   aHeightSlider.addEventListener("input", (e) => {
     state.height = parseInt(e.target.value, 10);
     syncInputs();
-    recomputeAsvRecommendation(true);
+    recomputeRecommendation(true);
   });
 
   etco2Slider.addEventListener("input", (e) => {
     state.etco2 = parseInt(e.target.value, 10);
     clearPresets();
-    recomputeAsvRecommendation(true);
+    recomputeRecommendation(true);
   });
   rSlider.addEventListener("input", (e) => {
     state.r = parseInt(e.target.value, 10);
     clearPresets();
-    recomputeAsvRecommendation(true);
+    recomputeRecommendation(true);
   });
   cSlider.addEventListener("input", (e) => {
     state.c = parseInt(e.target.value, 10);
     clearPresets();
-    recomputeAsvRecommendation(true);
+    recomputeRecommendation(true);
   });
 
-  presetNorm.addEventListener("click", () => applyAsvPreset("norm", 38, 10, 50));
-  presetArds.addEventListener("click", () => applyAsvPreset("ards", 44, 12, 25));
-  presetCopd.addEventListener("click", () => applyAsvPreset("copd", 50, 22, 55));
+  presetNorm.addEventListener("click", () => applyPreset("norm", 38, 10, 50));
+  presetArds.addEventListener("click", () => applyPreset("ards", 44, 12, 25));
+  presetCopd.addEventListener("click", () => applyPreset("copd", 50, 22, 55));
 
-  function applyAsvPreset(type, et, r, c) {
+  function applyPreset(type, et, r, c) {
     state.etco2 = et;
     state.r = r;
     state.c = c;
@@ -252,7 +252,7 @@
     if (type === "ards") presetArds.classList.add("active");
     if (type === "copd") presetCopd.classList.add("active");
 
-    recomputeAsvRecommendation(true);
+    recomputeRecommendation(true);
   }
 
   function clearPresets() {
@@ -266,21 +266,19 @@
     state.setRr = state.recRr;
     state.setTi = state.recTi;
     syncSlidersToState();
-    renderAsvView();
+    renderOptView();
   });
 
   // ==========================================
-  // 【最重要】手動スライダー相互連動ロジック
+  // 手動スライダー相互連動ロジック
   // ==========================================
 
   // ① 分時換気量 (setMvSlider) を動かしたとき:
-  // -> Otis式により Vt, RR, Ti を自動追従再計算！
   setMvSlider.addEventListener("input", (e) => {
     state.setMv = parseFloat(e.target.value);
 
-    // 新しいsetMvに対してOtis最適解を算出
     const rcExpSec = (state.r * (state.c / 1000));
-    const vdMl = Math.round(2.2 * state.ibw);
+    const vdMl = Math.round(2.2 * state.pbw);
     const vdL = vdMl / 1000;
     const a = 0.33;
 
@@ -295,21 +293,17 @@
 
     state.setRr = optF;
     state.setVt = Math.round((state.setMv * 1000) / state.setRr);
-
-    // Tiの自動連動
     state.setTi = calcRecommendedTi(state.setRr, rcExpSec);
 
     syncSlidersToState();
-    renderAsvView();
+    renderOptView();
   });
 
   // ② 一回換気量 (setVtSlider) を動かしたとき:
-  // -> 現在の分時換気量 (setMv) を維持し、呼吸回数 RR を自動連動 (RR = MV / Vt)！ Tiも連動！
   setVtSlider.addEventListener("input", (e) => {
     state.setVt = parseInt(e.target.value, 10);
     if (state.setVt <= 0) return;
 
-    // RR = (setMv * 1000) / setVt
     let newRr = Math.round((state.setMv * 1000) / state.setVt);
     if (newRr < 5) newRr = 5;
     if (newRr > 50) newRr = 50;
@@ -319,16 +313,14 @@
     state.setTi = calcRecommendedTi(state.setRr, rcExpSec);
 
     syncSlidersToState();
-    renderAsvView();
+    renderOptView();
   });
 
   // ③ 呼吸回数 (setRrSlider) を動かしたとき:
-  // -> 現在の分時換気量 (setMv) を維持し、一回換気量 Vt を自動連動 (Vt = MV / RR)！ Tiも連動！
   setRrSlider.addEventListener("input", (e) => {
     state.setRr = parseInt(e.target.value, 10);
     if (state.setRr <= 0) return;
 
-    // Vt = (setMv * 1000) / setRr
     let newVt = Math.round((state.setMv * 1000) / state.setRr);
     if (newVt < 150) newVt = 150;
     if (newVt > 1200) newVt = 1200;
@@ -338,14 +330,13 @@
     state.setTi = calcRecommendedTi(state.setRr, rcExpSec);
 
     syncSlidersToState();
-    renderAsvView();
+    renderOptView();
   });
 
   // ④ 吸気時間 (setTiSlider) を動かしたとき:
-  // -> I:E比や呼気時間Teが追従！
   setTiSlider.addEventListener("input", (e) => {
     state.setTi = parseFloat(e.target.value);
-    renderAsvView();
+    renderOptView();
   });
 
   function syncSlidersToState() {
@@ -355,7 +346,6 @@
     setTiSlider.value = state.setTi.toFixed(2);
   }
 
-  // 呼吸回数と時定数に応じた推奨Ti算出関数
   function calcRecommendedTi(rr, rcExpSec) {
     const tTotal = 60 / rr;
     let tiRatio;
@@ -370,17 +360,17 @@
     if (ti < rcExpSec) ti = rcExpSec;
     if (ti > 1.5) ti = 1.5;
     if (ti < 0.6) ti = 0.6;
-    return Math.round(ti * 20) / 20; // 0.05刻み
+    return Math.round(ti * 20) / 20;
   }
 
   // ==========================================
   // 推奨値の計算 & 全体レンダリング
   // ==========================================
-  function recomputeAsvRecommendation(applyToSet = false) {
-    state.ibw = calcIBW(state.gender, state.height);
-    const vdMl = Math.round(2.2 * state.ibw);
+  function recomputeRecommendation(applyToSet = false) {
+    state.pbw = calcPBW(state.gender, state.height);
+    const vdMl = Math.round(2.2 * state.pbw);
     const vdL = vdMl / 1000;
-    const baseMvL = state.ibw * 0.1;
+    const baseMvL = state.pbw * 0.1;
 
     // EtCO2 補正 (目標 38)
     const etRatio = state.etco2 / 38;
@@ -408,7 +398,6 @@
     // 推奨Ti
     state.recTi = calcRecommendedTi(state.recRr, rcExpSec);
 
-    // 初回またはパラメータ変更時に手動設定値へ適用
     if (applyToSet) {
       state.setMv = state.recMv;
       state.setVt = state.recVt;
@@ -417,18 +406,18 @@
       syncSlidersToState();
     }
 
-    renderAsvView();
+    renderOptView();
   }
 
-  function renderAsvView() {
+  function renderOptView() {
     const rcExpSec = (state.r * (state.c / 1000));
     const rcExpRounded = Math.round(rcExpSec * 100) / 100;
 
-    // TV基準値 (IBW × 6〜8)
-    const stdTvMin = Math.round(state.ibw * 6);
-    const stdTvMax = Math.round(state.ibw * 8);
+    // TV基準値 (PBW × 6〜8)
+    const stdTvMin = Math.round(state.pbw * 6);
+    const stdTvMax = Math.round(state.pbw * 8);
 
-    aIbwDisplay.textContent = state.ibw.toFixed(1);
+    aPbwDisplay.textContent = state.pbw.toFixed(1);
     aTvRangeDisplay.textContent = `${stdTvMin} 〜 ${stdTvMax}`;
     recTvStdNote.textContent = `${stdTvMin}〜${stdTvMax}`;
 
@@ -467,7 +456,7 @@
       rcExpBadge.style.background = "rgba(45, 212, 191, 0.12)";
     }
 
-    // 推奨値ピルバッジの更新 (常に保持表示)
+    // 推奨値ピルバッジ (常に保持表示)
     pillRecMv.textContent = `推奨 ${state.recMv.toFixed(1)}`;
     pillRecVt.textContent = `推奨 ${state.recVt}`;
     pillRecRr.textContent = `推奨 ${state.recRr}`;
@@ -478,7 +467,7 @@
     recMvMl.textContent = Math.round(state.setMv * 1000).toLocaleString();
 
     recVt.textContent = state.setVt;
-    recVtPerKg.textContent = (state.setVt / state.ibw).toFixed(1);
+    recVtPerKg.textContent = (state.setVt / state.pbw).toFixed(1);
 
     recRr.textContent = state.setRr;
     const tTotal = 60 / state.setRr;
@@ -513,7 +502,7 @@
       dpStatus.className = "safety-status status-danger";
     }
 
-    // グラフ凡例テキスト
+    // 凡例テキスト
     if (graphTargetVal) {
       graphTargetVal.textContent = `${state.setRr} bpm / ${state.setVt} mL`;
     }
@@ -588,8 +577,8 @@
     // セーフティーフレーム (安全枠)
     const minF = 5;
     const maxF = Math.min(48, Math.round(20 / rcExpSec));
-    const minVt = Math.round(4.4 * state.ibw);
-    const maxVt = Math.round(Math.min(15.4 * state.ibw, (state.setMv * 1000) / 5));
+    const minVt = Math.round(4.4 * state.pbw);
+    const maxVt = Math.round(Math.min(15.4 * state.pbw, (state.setMv * 1000) / 5));
 
     const sfL = toX(minF);
     const sfR = toX(Math.min(axisMaxF - 2, maxF));
@@ -640,11 +629,10 @@
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // 2. 現在設定点 (ユーザー操作点: 黄色の二重円＆グロウ)
+    // 2. 現在設定点 (黄色の二重円＆グロウ)
     const setX = toX(state.setRr);
     const setY = toY(state.setVt);
 
-    // 十字破線ガイド
     ctx.strokeStyle = "rgba(251, 191, 36, 0.35)";
     ctx.lineWidth = 1;
     ctx.setLineDash([3, 3]);
@@ -656,7 +644,6 @@
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // 外側グロウ
     ctx.shadowColor = "rgba(251, 191, 36, 0.9)";
     ctx.shadowBlur = 14;
     ctx.fillStyle = "#fbbf24";
@@ -665,7 +652,6 @@
     ctx.fill();
     ctx.shadowBlur = 0;
 
-    // 白枠リング
     ctx.strokeStyle = "#ffffff";
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -675,5 +661,5 @@
 
   // 初期化実行
   updateBasic();
-  recomputeAsvRecommendation(true);
+  recomputeRecommendation(true);
 })();
