@@ -60,14 +60,174 @@
     viewOpt.style.display = mode === "opt" ? "block" : "none";
     viewAdv.style.display = mode === "adv" ? "block" : "none";
 
-    if (mode === "basic") {
-      updateBasic();
-    } else if (mode === "opt") {
-      renderOptView();
-    } else if (mode === "adv") {
-      renderAdvView();
-    }
+    // どのタブに切り替えても最新同期状態から全画面を同期描画
+    updateBasic();
+    syncInputsToOptState();
+    renderOptView();
+    syncInputsToAdvState();
+    renderAdvView();
   }
+
+  // ==========================================
+  // 全モード双方向リアルタイム同期 機構
+  // ==========================================
+
+  let isSyncing = false;
+
+  // 1. 性別の全モード同期
+  function syncAllGender(gender) {
+    if (isSyncing) return;
+    isSyncing = true;
+    bState.gender = gender;
+    optState.gender = gender;
+    advState.gender = gender;
+
+    const isMale = gender === "male";
+    if (bBtnMale && bBtnFemale) {
+      bBtnMale.classList.toggle("active", isMale);
+      bBtnFemale.classList.toggle("active", !isMale);
+    }
+    const aBtnM = document.getElementById("aBtnMale") || document.getElementById("btnMale");
+    const aBtnF = document.getElementById("aBtnFemale") || document.getElementById("btnFemale");
+    if (aBtnM && aBtnF) {
+      aBtnM.classList.toggle("active", isMale);
+      aBtnF.classList.toggle("active", !isMale);
+    }
+    const advBtnM = document.getElementById("advBtnMale");
+    const advBtnF = document.getElementById("advBtnFemale");
+    if (advBtnM && advBtnF) {
+      advBtnM.classList.toggle("active", isMale);
+      advBtnF.classList.toggle("active", !isMale);
+    }
+
+    updateBasic();
+    recomputeRecommendation(true);
+    recomputeAdvRecommendation(true);
+    isSyncing = false;
+  }
+
+  // 2. 身長の全モード同期
+  function syncAllHeight(height) {
+    if (isSyncing) return;
+    isSyncing = true;
+    const h = Math.round(height);
+    bState.height = h;
+    optState.height = h;
+    advState.height = h;
+
+    if (bHeightInput) bHeightInput.value = h;
+    if (bHeightSlider) bHeightSlider.value = h;
+
+    const aHIn = document.getElementById("aHeightInput") || document.getElementById("heightInput");
+    const aHSl = document.getElementById("aHeightSlider") || document.getElementById("heightSlider");
+    if (aHIn) aHIn.value = h;
+    if (aHSl) aHSl.value = h;
+
+    if (advHeightInput) advHeightInput.value = h;
+    if (advHeightSlider) advHeightSlider.value = h;
+
+    updateBasic();
+    recomputeRecommendation(true);
+    recomputeAdvRecommendation(true);
+    isSyncing = false;
+  }
+
+  // 3. 呼吸力学値 (EtCO2, R, C) の相互同期
+  function syncAllMechanics(field, val) {
+    if (isSyncing) return;
+    isSyncing = true;
+    const v = Math.round(val);
+    if (field === "etco2") {
+      optState.etco2 = v;
+      advState.etco2 = v;
+      if (etco2Input) etco2Input.value = v;
+      if (etco2Slider) etco2Slider.value = v;
+      if (advEtco2Input) advEtco2Input.value = v;
+      if (advEtco2Slider) advEtco2Slider.value = v;
+    } else if (field === "r") {
+      optState.r = v;
+      advState.r = v;
+      if (rInput) rInput.value = v;
+      if (rSlider) rSlider.value = v;
+      if (advRInput) advRInput.value = v;
+      if (advRSlider) advRSlider.value = v;
+    } else if (field === "c") {
+      optState.c = v;
+      advState.c = v;
+      if (cInput) cInput.value = v;
+      if (cSlider) cSlider.value = v;
+      if (advCInput) advCInput.value = v;
+      if (advCSlider) advCSlider.value = v;
+    }
+
+    recomputeRecommendation(true);
+    recomputeAdvRecommendation(true);
+    isSyncing = false;
+  }
+
+  // 4. 換気設定値 (MV, Vt, RR, Ti) の相互同期
+  function syncVentilationFromOpt() {
+    if (isSyncing) return;
+    isSyncing = true;
+    advState.setMv = optState.setMv;
+    advState.setVt = optState.setVt;
+    advState.setRr = optState.setRr;
+    advState.setTi = optState.setTi;
+    syncInputsToAdvState();
+    renderAdvView();
+
+    // 基本モードの MV% も同期
+    const pbw = calcPBW(bState.gender, bState.height);
+    const baseMvL = pbw * 0.1;
+    if (baseMvL > 0) {
+      bState.mvPct = Math.round((optState.setMv / baseMvL) * 100);
+      if (bMvPctInput) bMvPctInput.value = bState.mvPct;
+      if (bMvPctSlider) bMvPctSlider.value = bState.mvPct;
+      updateBasic();
+    }
+    isSyncing = false;
+  }
+
+  function syncVentilationFromAdv() {
+    if (isSyncing) return;
+    isSyncing = true;
+    optState.setMv = advState.setMv;
+    optState.setVt = advState.setVt;
+    optState.setRr = advState.setRr;
+    optState.setTi = advState.setTi;
+    syncInputsToOptState();
+    renderOptView();
+
+    // 基本モードの MV% も同期
+    const pbw = calcPBW(bState.gender, bState.height);
+    const baseMvL = pbw * 0.1;
+    if (baseMvL > 0) {
+      bState.mvPct = Math.round((advState.setMv / baseMvL) * 100);
+      if (bMvPctInput) bMvPctInput.value = bState.mvPct;
+      if (bMvPctSlider) bMvPctSlider.value = bState.mvPct;
+      updateBasic();
+    }
+    isSyncing = false;
+  }
+
+  function syncVentilationFromBasic() {
+    if (isSyncing) return;
+    isSyncing = true;
+    const pbw = calcPBW(bState.gender, bState.height);
+    const baseMvL = pbw * 0.1;
+    const newMv = baseMvL * (bState.mvPct / 100);
+
+    // optState / advState の MV を更新
+    handleMvChange(newMv);
+    advState.setMv = optState.setMv;
+    advState.setVt = optState.setVt;
+    advState.setRr = optState.setRr;
+    advState.setTi = optState.setTi;
+    syncInputsToAdvState();
+    renderAdvView();
+    isSyncing = false;
+  }
+
 
   // ==========================================
   // モード 1: 基本モード
@@ -92,19 +252,9 @@
   const bMvTargetL = document.getElementById("bMvTargetL");
   const bMvTargetMl = document.getElementById("bMvTargetMl");
 
-  bBtnMale.addEventListener("click", () => {
-    bState.gender = "male";
-    bBtnMale.classList.add("active");
-    bBtnFemale.classList.remove("active");
-    updateBasic();
-  });
+  bBtnMale.addEventListener("click", () => syncAllGender("male"));
 
-  bBtnFemale.addEventListener("click", () => {
-    bState.gender = "female";
-    bBtnFemale.classList.add("active");
-    bBtnMale.classList.remove("active");
-    updateBasic();
-  });
+  bBtnFemale.addEventListener("click", () => syncAllGender("female"));
 
   function updateBasic() {
     const pbw = calcPBW(bState.gender, bState.height);
@@ -211,19 +361,9 @@
   const graphTargetVal = document.getElementById("graphTargetVal");
   const graphRecVal = document.getElementById("graphRecVal");
 
-  aBtnMale.addEventListener("click", () => {
-    optState.gender = "male";
-    aBtnMale.classList.add("active");
-    aBtnFemale.classList.remove("active");
-    recomputeRecommendation(true);
-  });
+  aBtnMale.addEventListener("click", () => syncAllGender("male"));
 
-  aBtnFemale.addEventListener("click", () => {
-    optState.gender = "female";
-    aBtnFemale.classList.add("active");
-    aBtnMale.classList.remove("active");
-    recomputeRecommendation(true);
-  });
+  aBtnFemale.addEventListener("click", () => syncAllGender("female"));
 
   presetNorm.addEventListener("click", () => applyPreset("norm", 38, 10, 50));
   presetArds.addEventListener("click", () => applyPreset("ards", 44, 12, 25));
@@ -280,6 +420,7 @@
 
     syncInputsToOptState();
     renderOptView();
+    syncVentilationFromOpt();
   }
 
   function handleVtChange(newVt) {
@@ -296,6 +437,7 @@
 
     syncInputsToOptState();
     renderOptView();
+    syncVentilationFromOpt();
   }
 
   function handleRrChange(newRr) {
@@ -312,6 +454,7 @@
 
     syncInputsToOptState();
     renderOptView();
+    syncVentilationFromOpt();
   }
 
   function handleTiChange(newTi) {
@@ -669,19 +812,9 @@
   const advGraphTargetVal = document.getElementById("advGraphTargetVal");
   const advGraphRecVal = document.getElementById("advGraphRecVal");
 
-  advBtnMale.addEventListener("click", () => {
-    advState.gender = "male";
-    advBtnMale.classList.add("active");
-    advBtnFemale.classList.remove("active");
-    recomputeAdvRecommendation(true);
-  });
+  advBtnMale.addEventListener("click", () => syncAllGender("male"));
 
-  advBtnFemale.addEventListener("click", () => {
-    advState.gender = "female";
-    advBtnFemale.classList.add("active");
-    advBtnMale.classList.remove("active");
-    recomputeAdvRecommendation(true);
-  });
+  advBtnFemale.addEventListener("click", () => syncAllGender("female"));
 
   advPresetNorm.addEventListener("click", () => applyAdvPreset("norm", 38, 10, 50, 40));
   advPresetArds.addEventListener("click", () => applyAdvPreset("ards", 44, 12, 25, 52));
@@ -766,6 +899,7 @@
 
     syncInputsToAdvState();
     renderAdvView();
+    syncVentilationFromAdv();
   }
 
   function handleAdvVtChange(newVt) {
@@ -782,6 +916,7 @@
 
     syncInputsToAdvState();
     renderAdvView();
+    syncVentilationFromAdv();
   }
 
   function handleAdvRrChange(newRr) {
@@ -798,6 +933,7 @@
 
     syncInputsToAdvState();
     renderAdvView();
+    syncVentilationFromAdv();
   }
 
   function handleAdvTiChange(newTi) {
@@ -1184,29 +1320,79 @@
 
   function setParamValue(target, val) {
     switch (target) {
-      case "bHeight": bState.height = Math.round(val); updateBasic(); break;
-      case "bMvPct": bState.mvPct = Math.round(val); updateBasic(); break;
-      case "aHeight": optState.height = Math.round(val); syncInputsToOptState(); recomputeRecommendation(true); break;
-      case "etco2": optState.etco2 = Math.round(val); syncInputsToOptState(); recomputeRecommendation(true); break;
-      case "r": optState.r = Math.round(val); syncInputsToOptState(); recomputeRecommendation(true); break;
-      case "c": optState.c = Math.round(val); syncInputsToOptState(); recomputeRecommendation(true); break;
-      case "setMv": handleMvChange(val); break;
-      case "setVt": handleVtChange(val); break;
-      case "setRr": handleRrChange(val); break;
-      case "setTi": handleTiChange(val); break;
+      case "bHeight":
+      case "aHeight":
+      case "advHeight":
+        syncAllHeight(val);
+        break;
 
-      case "advHeight": advState.height = Math.round(val); syncInputsToAdvState(); recomputeAdvRecommendation(true); break;
-      case "advEtco2": advState.etco2 = Math.round(val); syncInputsToAdvState(); recomputeAdvRecommendation(true); break;
-      case "advR": advState.r = Math.round(val); syncInputsToAdvState(); recomputeAdvRecommendation(true); break;
-      case "advC": advState.c = Math.round(val); syncInputsToAdvState(); recomputeAdvRecommendation(true); break;
-      case "advPaco2": advState.paco2 = Math.round(val); syncInputsToAdvState(); renderAdvView(); break;
-      case "advPh": advState.ph = parseFloat(val.toFixed(2)); syncInputsToAdvState(); renderAdvView(); break;
-      case "advTargetPaco2": advState.targetPaco2 = Math.round(val); syncInputsToAdvState(); renderAdvView(); break;
-      case "advSetMv": handleAdvMvChange(val); break;
-      case "advSetVt": handleAdvVtChange(val); break;
-      case "advSetRr": handleAdvRrChange(val); break;
-      case "advSetTi": handleAdvTiChange(val); break;
-      case "advPeep": advState.peep = Math.round(val); syncInputsToAdvState(); renderAdvView(); break;
+      case "bMvPct":
+        bState.mvPct = Math.round(val);
+        updateBasic();
+        syncVentilationFromBasic();
+        break;
+
+      case "etco2":
+      case "advEtco2":
+        syncAllMechanics("etco2", val);
+        break;
+
+      case "r":
+      case "advR":
+        syncAllMechanics("r", val);
+        break;
+
+      case "c":
+      case "advC":
+        syncAllMechanics("c", val);
+        break;
+
+      case "setMv":
+        handleMvChange(val);
+        break;
+      case "setVt":
+        handleVtChange(val);
+        break;
+      case "setRr":
+        handleRrChange(val);
+        break;
+      case "setTi":
+        handleTiChange(val);
+        break;
+
+      case "advSetMv":
+        handleAdvMvChange(val);
+        break;
+      case "advSetVt":
+        handleAdvVtChange(val);
+        break;
+      case "advSetRr":
+        handleAdvRrChange(val);
+        break;
+      case "advSetTi":
+        handleAdvTiChange(val);
+        break;
+
+      case "advPaco2":
+        advState.paco2 = Math.round(val);
+        syncInputsToAdvState();
+        renderAdvView();
+        break;
+      case "advPh":
+        advState.ph = parseFloat(val.toFixed(2));
+        syncInputsToAdvState();
+        renderAdvView();
+        break;
+      case "advTargetPaco2":
+        advState.targetPaco2 = Math.round(val);
+        syncInputsToAdvState();
+        renderAdvView();
+        break;
+      case "advPeep":
+        advState.peep = Math.round(val);
+        syncInputsToAdvState();
+        renderAdvView();
+        break;
     }
   }
 
@@ -1227,6 +1413,13 @@
     }
 
     inputElem.addEventListener("change", commit);
+    inputElem.addEventListener("input", () => {
+      let val = parseFloat(inputElem.value);
+      if (!isNaN(val) && val >= conf.min && val <= conf.max) {
+        val = parseFloat(val.toFixed(conf.decimals));
+        setParamValue(target, val);
+      }
+    });
     inputElem.addEventListener("keydown", (e) => {
       if (e.key === "Enter") inputElem.blur();
     });
@@ -1257,17 +1450,17 @@
   setupDirectInput(advSetTiInput, "advSetTi");
   setupDirectInput(advPeepInput, "advPeep");
 
-  // スライダーバインド
+  // スライダーバインド (すべて setParamValue を経由して全モード完全連動)
   bHeightSlider.addEventListener("input", (e) => setParamValue("bHeight", parseFloat(e.target.value)));
   bMvPctSlider.addEventListener("input", (e) => setParamValue("bMvPct", parseFloat(e.target.value)));
   aHeightSlider.addEventListener("input", (e) => setParamValue("aHeight", parseFloat(e.target.value)));
   etco2Slider.addEventListener("input", (e) => setParamValue("etco2", parseFloat(e.target.value)));
   rSlider.addEventListener("input", (e) => setParamValue("r", parseFloat(e.target.value)));
   cSlider.addEventListener("input", (e) => setParamValue("c", parseFloat(e.target.value)));
-  setMvSlider.addEventListener("input", (e) => handleMvChange(parseFloat(e.target.value)));
-  setVtSlider.addEventListener("input", (e) => handleVtChange(parseInt(e.target.value, 10)));
-  setRrSlider.addEventListener("input", (e) => handleRrChange(parseInt(e.target.value, 10)));
-  setTiSlider.addEventListener("input", (e) => handleTiChange(parseFloat(e.target.value)));
+  setMvSlider.addEventListener("input", (e) => setParamValue("setMv", parseFloat(e.target.value)));
+  setVtSlider.addEventListener("input", (e) => setParamValue("setVt", parseInt(e.target.value, 10)));
+  setRrSlider.addEventListener("input", (e) => setParamValue("setRr", parseInt(e.target.value, 10)));
+  setTiSlider.addEventListener("input", (e) => setParamValue("setTi", parseFloat(e.target.value)));
 
   advHeightSlider.addEventListener("input", (e) => setParamValue("advHeight", parseFloat(e.target.value)));
   advEtco2Slider.addEventListener("input", (e) => setParamValue("advEtco2", parseFloat(e.target.value)));
@@ -1276,10 +1469,10 @@
   advPaco2Slider.addEventListener("input", (e) => setParamValue("advPaco2", parseFloat(e.target.value)));
   advPhSlider.addEventListener("input", (e) => setParamValue("advPh", parseFloat(e.target.value)));
   advTargetPaco2Slider.addEventListener("input", (e) => setParamValue("advTargetPaco2", parseFloat(e.target.value)));
-  advSetMvSlider.addEventListener("input", (e) => handleAdvMvChange(parseFloat(e.target.value)));
-  advSetVtSlider.addEventListener("input", (e) => handleAdvVtChange(parseInt(e.target.value, 10)));
-  advSetRrSlider.addEventListener("input", (e) => handleAdvRrChange(parseInt(e.target.value, 10)));
-  advSetTiSlider.addEventListener("input", (e) => handleAdvTiChange(parseFloat(e.target.value)));
+  advSetMvSlider.addEventListener("input", (e) => setParamValue("advSetMv", parseFloat(e.target.value)));
+  advSetVtSlider.addEventListener("input", (e) => setParamValue("advSetVt", parseInt(e.target.value, 10)));
+  advSetRrSlider.addEventListener("input", (e) => setParamValue("advSetRr", parseInt(e.target.value, 10)));
+  advSetTiSlider.addEventListener("input", (e) => setParamValue("advSetTi", parseFloat(e.target.value)));
 
   // 取扱説明書 ＆ 初心者向け呼吸療法解説書 モーダル制御
   function openManualModal() {
