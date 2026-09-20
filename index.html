@@ -2,20 +2,23 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>人工呼吸設定アシスタント | 基本換気量 & 力学最適化</title>
-  <meta name="description" content="基本換気量計算（PBW・%MV調整）と、実測R・C・EtCO2に基づく力学最適化・手動連動シミュレーション（Otis理論・吸気時間Ti・セーフティーフレーム）の臨床支援アプリ。" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>換気量計算ツール (力学最適化対応)</title>
+  <meta name="description" content="予測体重(PBW)と呼吸力学(時定数・EtCO2・抵抗・コンプライアンス)に基づき、換気量・呼吸回数・吸気時間を算出するツール" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=20260920_2" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&family=Noto+Sans+JP:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=20260920_3" />
 </head>
 <body>
   <div class="app-container">
     <!-- ヘッダー -->
-    <header class="header">
-      <h1>人工呼吸設定アシスタント</h1>
-      <p class="header-subtitle">臨床現場のニーズに応じた2つの計算モード</p>
+    <header class="app-header">
+      <div class="header-main">
+        <div class="header-badge">VENTILATION OPTIMIZER</div>
+        <h1 class="header-title">換気量計算ツール</h1>
+        <p class="header-subtitle">予測体重(PBW) & 呼吸力学に基づく適正換気シミュレーター</p>
+      </div>
 
       <!-- モード切り替えタブ -->
       <div class="mode-tabs">
@@ -35,41 +38,48 @@
          ============================================== -->
     <div id="viewBasic" class="view-panel" style="display: none;">
       <main class="main-card">
-        <!-- 患者情報入力 -->
+        <!-- 1. 患者情報 -->
         <section class="card-section">
           <div class="section-header">
             <span class="step-num">1</span>
             <h2>患者情報の入力</h2>
           </div>
 
+          <!-- 性別選択 -->
           <div class="gender-selector">
-            <button class="gender-btn active" id="bBtnMale" type="button">
-              <span class="gender-icon">♂</span>
-              <span class="gender-text">男性</span>
-            </button>
-            <button class="gender-btn" id="bBtnFemale" type="button">
-              <span class="gender-icon">♀</span>
-              <span class="gender-text">女性</span>
-            </button>
+            <span class="input-label">性別 (Gender)</span>
+            <div class="toggle-group">
+              <button type="button" class="toggle-btn active" id="bBtnMale">
+                <span class="btn-icon">👨</span> 男性
+              </button>
+              <button type="button" class="toggle-btn" id="bBtnFemale">
+                <span class="btn-icon">👩</span> 女性
+              </button>
+            </div>
           </div>
 
-          <div class="slider-box">
-            <div class="slider-info">
-              <span class="slider-title">身長</span>
-              <div class="slider-readout">
-                <span class="readout-num" id="bHeightDisplay">170</span>
-                <span class="readout-unit">cm</span>
+          <!-- 身長スライダー ＆ 直接入力 ＆ ステッパー -->
+          <div class="slider-group" id="cardBHeight">
+            <div class="slider-top">
+              <label class="slider-label" for="bHeightInput">身長 (Height)</label>
+              <div class="stepper-wrap">
+                <button type="button" class="btn-step" data-target="bHeight" data-action="dec" aria-label="身長減少">−</button>
+                <div class="input-unit-wrap">
+                  <input type="number" id="bHeightInput" class="num-direct-input" min="130" max="200" step="1" value="170" inputmode="numeric" />
+                  <span class="input-unit">cm</span>
+                </div>
+                <button type="button" class="btn-step" data-target="bHeight" data-action="inc" aria-label="身長増加">＋</button>
               </div>
             </div>
             <div class="range-wrapper">
-              <span class="bound-text">100</span>
-              <input type="range" id="bHeightSlider" class="custom-range" min="100" max="200" value="170" step="1" />
+              <span class="bound-text">130</span>
+              <input type="range" id="bHeightSlider" class="custom-range" min="130" max="200" value="170" step="1" />
               <span class="bound-text">200</span>
             </div>
           </div>
         </section>
 
-        <!-- 計算結果セクション -->
+        <!-- 2. 計算結果 -->
         <section class="card-section">
           <div class="section-header">
             <span class="step-num">2</span>
@@ -95,13 +105,13 @@
             </div>
             <div class="range-display">
               <div class="range-side">
-                <span class="range-sub">最小 (×6)</span>
-                <span class="range-num text-sky" id="bTvMin">396</span> <span class="unit">mL</span>
+                <span class="range-sub">最小 (6 mL/kg)</span>
+                <div class="range-num-wrap"><span class="range-num text-sky" id="bTvMin">396</span> <span class="range-unit">mL</span></div>
               </div>
-              <span class="range-tilde">〜</span>
+              <div class="range-arrow">〜</div>
               <div class="range-side">
-                <span class="range-sub">最大 (×8)</span>
-                <span class="range-num text-sky" id="bTvMax">528</span> <span class="unit">mL</span>
+                <span class="range-sub">最大 (8 mL/kg)</span>
+                <div class="range-num-wrap"><span class="range-num text-sky" id="bTvMax">528</span> <span class="range-unit">mL</span></div>
               </div>
             </div>
           </div>
@@ -114,102 +124,41 @@
             </div>
 
             <div class="mv-base-row">
-              <span class="mv-base-lbl">適正基準値 (100%):</span>
-              <span class="mv-base-val"><strong id="bMvBaseL">6.6</strong> L/min (<span id="bMvBaseMl">6,600</span> mL/min)</span>
+              <div class="mv-base-label">基準換気量 (100%):</div>
+              <div class="mv-base-val">
+                <span class="text-amber" id="bMvBaseL">6.6</span> <span class="range-unit">L/min</span>
+                (<span id="bMvBaseMl">6,600</span> mL/min)
+              </div>
             </div>
 
-            <!-- %調整スライダー (10%〜400%) -->
-            <div class="slider-box compact mt-2">
-              <div class="slider-info">
-                <span class="slider-title">分時換気量 調整比率 (%MinVol)</span>
-                <div class="slider-readout text-amber">
-                  <span class="readout-num small" id="bPercentDisplay">100%</span>
+            <div class="slider-group" style="margin-top: 10px;" id="cardBMvPct">
+              <div class="slider-top">
+                <label class="slider-label" for="bMvPctInput">%分時換気量 (%MV)</label>
+                <div class="stepper-wrap">
+                  <button type="button" class="btn-step" data-target="bMvPct" data-action="dec" aria-label="%MV減少">−</button>
+                  <div class="input-unit-wrap">
+                    <input type="number" id="bMvPctInput" class="num-direct-input" min="25" max="350" step="5" value="100" inputmode="numeric" />
+                    <span class="input-unit">%</span>
+                  </div>
+                  <button type="button" class="btn-step" data-target="bMvPct" data-action="inc" aria-label="%MV増加">＋</button>
                 </div>
               </div>
               <div class="range-wrapper">
-                <span class="bound-text">10%</span>
-                <input type="range" id="bPercentSlider" class="custom-range range-amber" min="10" max="400" value="100" step="5" />
-                <span class="bound-text">400%</span>
+                <span class="bound-text">25%</span>
+                <input type="range" id="bMvPctSlider" class="custom-range range-amber" min="25" max="350" value="100" step="5" />
+                <span class="bound-text">350%</span>
               </div>
             </div>
 
-            <!-- 調整後の値 (100%以外の時に表示) -->
-            <div id="bAdjustedBox" class="adjusted-display" style="display:none;">
-              <span class="adj-label">調整後の分時換気量:</span>
-              <div class="adj-val-wrap">
-                <span class="adj-num" id="bAdjustedL">6.6</span> <span class="unit">L/min</span>
-                <span class="adj-sub">(<span id="bAdjustedMl">6,600</span> mL/min)</span>
+            <div class="mv-target-wrap">
+              <div class="mv-target-label">目標分時換気量:</div>
+              <div class="mv-target-val">
+                <span class="mv-target-huge text-amber" id="bMvTargetL">6.6</span>
+                <span class="range-unit" style="font-size:16px;">L/min</span>
+                <span class="mv-target-sub">(<span id="bMvTargetMl">6,600</span> mL/min)</span>
               </div>
             </div>
           </div>
-
-          <!-- 病態別 酸素消費量目安テーブル -->
-          <details class="ref-accordion">
-            <summary class="ref-summary">📖 病態別の酸素消費量・代謝目安を見る</summary>
-            <div class="ref-content">
-              <table class="ref-table">
-                <thead>
-                  <tr>
-                    <th>状態・病態</th>
-                    <th>酸素消費量目安</th>
-                    <th>主な要因・備考</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr class="row-danger">
-                    <td>痙攣・てんかん重積</td>
-                    <td>200 〜 300%以上</td>
-                    <td>著明な筋活動の亢進</td>
-                  </tr>
-                  <tr class="row-danger">
-                    <td>シバリング</td>
-                    <td>150 〜 300%</td>
-                    <td>TTM導入・復温時に注意</td>
-                  </tr>
-                  <tr class="row-danger">
-                    <td>重症熱傷</td>
-                    <td>150 〜 200%</td>
-                    <td>ハイパーメタボリズム</td>
-                  </tr>
-                  <tr class="row-warn">
-                    <td>敗血症・SIRS</td>
-                    <td>120 〜 160%</td>
-                    <td>炎症反応による代謝亢進</td>
-                  </tr>
-                  <tr class="row-warn">
-                    <td>呼吸仕事量の増大</td>
-                    <td>120 〜 150%</td>
-                    <td>努力様呼吸、非同調</td>
-                  </tr>
-                  <tr class="row-warn">
-                    <td>発熱</td>
-                    <td>110 〜 130%</td>
-                    <td>体温1℃上昇毎に約10-13%↑</td>
-                  </tr>
-                  <tr class="row-base">
-                    <td>安静時（基準）</td>
-                    <td>100%</td>
-                    <td>健常成人の安静時</td>
-                  </tr>
-                  <tr class="row-low">
-                    <td>鎮静・鎮痛下</td>
-                    <td>80 〜 90%</td>
-                    <td>筋活動低下、交感神経抑制</td>
-                  </tr>
-                  <tr class="row-low">
-                    <td>筋弛緩薬投与下</td>
-                    <td>70 〜 80%</td>
-                    <td>骨格筋の活動完全停止</td>
-                  </tr>
-                  <tr class="row-low">
-                    <td>低体温 (32-34℃)</td>
-                    <td>50 〜 70%</td>
-                    <td>体温1℃低下毎に約7-10%↓</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </details>
         </section>
       </main>
     </div>
@@ -227,27 +176,33 @@
           </div>
 
           <div class="gender-selector">
-            <button class="gender-btn active" id="aBtnMale" type="button">
-              <span class="gender-icon">♂</span>
-              <span class="gender-text">男性</span>
-            </button>
-            <button class="gender-btn" id="aBtnFemale" type="button">
-              <span class="gender-icon">♀</span>
-              <span class="gender-text">女性</span>
-            </button>
+            <span class="input-label">性別 (Gender)</span>
+            <div class="toggle-group">
+              <button type="button" class="toggle-btn active" id="aBtnMale">
+                <span class="btn-icon">👨</span> 男性
+              </button>
+              <button type="button" class="toggle-btn" id="aBtnFemale">
+                <span class="btn-icon">👩</span> 女性
+              </button>
+            </div>
           </div>
 
-          <div class="slider-box">
-            <div class="slider-info">
-              <span class="slider-title">患者身長</span>
-              <div class="slider-readout">
-                <span class="readout-num" id="aHeightDisplay">170</span>
-                <span class="readout-unit">cm</span>
+          <!-- 身長スライダー ＆ 直接入力 ＆ ステッパー -->
+          <div class="slider-group" id="cardAHeight">
+            <div class="slider-top">
+              <label class="slider-label" for="aHeightInput">身長 (Height)</label>
+              <div class="stepper-wrap">
+                <button type="button" class="btn-step" data-target="aHeight" data-action="dec" aria-label="身長減少">−</button>
+                <div class="input-unit-wrap">
+                  <input type="number" id="aHeightInput" class="num-direct-input" min="130" max="200" step="1" value="170" inputmode="numeric" />
+                  <span class="input-unit">cm</span>
+                </div>
+                <button type="button" class="btn-step" data-target="aHeight" data-action="inc" aria-label="身長増加">＋</button>
               </div>
             </div>
             <div class="range-wrapper">
-              <span class="bound-text">140</span>
-              <input type="range" id="aHeightSlider" class="custom-range" min="140" max="200" value="170" step="1" />
+              <span class="bound-text">130</span>
+              <input type="range" id="aHeightSlider" class="custom-range" min="130" max="200" value="170" step="1" />
               <span class="bound-text">200</span>
             </div>
           </div>
@@ -272,52 +227,56 @@
           </div>
         </section>
 
-        <!-- 2. 実測値 / 病態選択 -->
+        <!-- 2. 呼吸力学パラメータ -->
         <section class="card-section">
           <div class="section-header">
             <span class="step-num">2</span>
-            <h2>ベッドサイド実測値 / 病態選択</h2>
-            <span class="header-note">※未入力でも標準値で計算されます</span>
+            <h2>呼吸力学・ガス交換パラメータ</h2>
           </div>
 
           <!-- プリセットボタン -->
-          <div class="preset-group">
-            <span class="preset-label">病態プリセット (ワンタップ切替):</span>
+          <div class="preset-row">
+            <span class="preset-label">病態プリセット:</span>
             <div class="preset-buttons">
-              <button type="button" class="preset-btn active" id="presetNorm">正常肺 (標準)</button>
-              <button type="button" class="preset-btn" id="presetArds">ARDS / 拘束性 (硬い肺)</button>
-              <button type="button" class="preset-btn" id="presetCopd">COPD / 閉塞性 (狭い気道)</button>
+              <button type="button" class="btn-preset active" id="presetNorm">正常肺</button>
+              <button type="button" class="btn-preset" id="presetArds">ARDS (拘束性)</button>
+              <button type="button" class="btn-preset" id="presetCopd">COPD (閉塞性)</button>
             </div>
           </div>
 
-          <!-- EtCO2 スライダー -->
-          <div class="slider-box">
-            <div class="slider-info">
-              <div>
-                <span class="slider-title">実測 EtCO2 (呼気終末二酸化炭素分圧)</span>
-                <span class="slider-hint">基準目標: 38 mmHg</span>
+          <div class="param-grid-3">
+            <!-- EtCO2 -->
+            <div class="slider-group param-card" id="cardEtco2">
+              <div class="slider-top">
+                <label class="slider-label" for="etco2Input">呼気終末CO2 (EtCO2)</label>
+                <div class="stepper-wrap">
+                  <button type="button" class="btn-step" data-target="etco2" data-action="dec" aria-label="EtCO2減少">−</button>
+                  <div class="input-unit-wrap">
+                    <input type="number" id="etco2Input" class="num-direct-input" min="20" max="70" step="1" value="38" inputmode="numeric" />
+                    <span class="input-unit">mmHg</span>
+                  </div>
+                  <button type="button" class="btn-step" data-target="etco2" data-action="inc" aria-label="EtCO2増加">＋</button>
+                </div>
               </div>
-              <div class="slider-readout text-amber">
-                <span class="readout-num" id="etco2Display">38</span>
-                <span class="readout-unit">mmHg</span>
+              <div class="range-wrapper">
+                <span class="bound-text">20</span>
+                <input type="range" id="etco2Slider" class="custom-range" min="20" max="70" value="38" step="1" />
+                <span class="bound-text">70</span>
               </div>
+              <span class="slider-hint">基準: 35〜45 mmHg</span>
             </div>
-            <div class="range-wrapper">
-              <span class="bound-text">20</span>
-              <input type="range" id="etco2Slider" class="custom-range range-amber" min="20" max="75" value="38" step="1" />
-              <span class="bound-text">75</span>
-            </div>
-            <div class="slider-subtext" id="etco2Feedback">EtCO2は適正範囲内です</div>
-          </div>
 
-          <!-- R & C スライダー -->
-          <div class="two-col-grid">
-            <div class="slider-box compact">
-              <div class="slider-info">
-                <span class="slider-title">気道抵抗 (R)</span>
-                <div class="slider-readout">
-                  <span class="readout-num small" id="rDisplay">10</span>
-                  <span class="readout-unit">cmH2O/(L/s)</span>
+            <!-- 気道抵抗 R -->
+            <div class="slider-group param-card" id="cardR">
+              <div class="slider-top">
+                <label class="slider-label" for="rInput">気道抵抗 (R)</label>
+                <div class="stepper-wrap">
+                  <button type="button" class="btn-step" data-target="r" data-action="dec" aria-label="気道抵抗減少">−</button>
+                  <div class="input-unit-wrap">
+                    <input type="number" id="rInput" class="num-direct-input" min="3" max="35" step="1" value="10" inputmode="numeric" />
+                    <span class="input-unit">cmH2O/L/s</span>
+                  </div>
+                  <button type="button" class="btn-step" data-target="r" data-action="inc" aria-label="気道抵抗増加">＋</button>
                 </div>
               </div>
               <div class="range-wrapper">
@@ -325,15 +284,20 @@
                 <input type="range" id="rSlider" class="custom-range" min="3" max="35" value="10" step="1" />
                 <span class="bound-text">35</span>
               </div>
-              <span class="slider-hint">正常: 5〜12</span>
+              <span class="slider-hint">基準: 5〜15</span>
             </div>
 
-            <div class="slider-box compact">
-              <div class="slider-info">
-                <span class="slider-title">コンプライアンス (C)</span>
-                <div class="slider-readout">
-                  <span class="readout-num small" id="cDisplay">50</span>
-                  <span class="readout-unit">mL/cmH2O</span>
+            <!-- コンプライアンス C -->
+            <div class="slider-group param-card" id="cardC">
+              <div class="slider-top">
+                <label class="slider-label" for="cInput">静肺コンプライアンス (C)</label>
+                <div class="stepper-wrap">
+                  <button type="button" class="btn-step" data-target="c" data-action="dec" aria-label="コンプライアンス減少">−</button>
+                  <div class="input-unit-wrap">
+                    <input type="number" id="cInput" class="num-direct-input" min="10" max="120" step="1" value="50" inputmode="numeric" />
+                    <span class="input-unit">mL/cmH2O</span>
+                  </div>
+                  <button type="button" class="btn-step" data-target="c" data-action="inc" aria-label="コンプライアンス増加">＋</button>
                 </div>
               </div>
               <div class="range-wrapper">
@@ -341,7 +305,7 @@
                 <input type="range" id="cSlider" class="custom-range" min="10" max="120" value="50" step="1" />
                 <span class="bound-text">120</span>
               </div>
-              <span class="slider-hint">正常: 40〜70</span>
+              <span class="slider-hint">基準: 40〜70</span>
             </div>
           </div>
 
@@ -353,53 +317,61 @@
                 <span id="rcExpDisplay">0.50</span> <span class="unit">秒</span>
               </div>
             </div>
-            <div class="rcexp-badge" id="rcExpBadge">正常肺 (0.50〜0.85s)</div>
+            <div class="rcexp-badge" id="rcExpBadge">正常 (0.50〜0.85s)</div>
           </div>
         </section>
 
-        <!-- 3. 【最重要】設定シミュレーション & 推奨値パネル -->
+        <!-- 3. 設定シミュレーション & 推奨値パネル -->
         <section class="card-section highlight-section">
           <div class="section-header">
             <div class="header-left">
               <span class="step-num bg-amber">3</span>
               <h2>設定シミュレーション & 推奨換気量</h2>
             </div>
-            <button type="button" class="btn-reset-rec" id="btnResetToRec" title="Otis理論による推奨値にリセットします">
+            <button type="button" class="btn-reset-rec" id="btnResetToRec" title="Otis理論推奨値にリセットします">
               🔄 推奨値にリセット
             </button>
           </div>
           <p class="section-lead">
-            各スライダーを動かして自由に変更できます（MV・Vt・RR・Tiが相互に自動連動し、グラフィックも追従します）。
+            スライダー・直接入力・＋/－ボタンで自由に調整できます（MV・Vt・RR・Ti相互連動＆グラフィック追従）。
           </p>
 
           <!-- 4連コントロールカード (MV, Vt, RR, Ti) -->
           <div class="recommend-grid-4">
             <!-- ① 分時換気量 (MV) -->
-            <div class="rec-card card-mv">
+            <div class="rec-card card-mv" id="cardMv">
               <div class="rec-card-top">
                 <span class="rec-label">① 分時換気量 (MV)</span>
                 <span class="rec-pill pill-amber" id="pillRecMv">推奨 6.6</span>
               </div>
-              <div class="rec-val-wrap">
-                <span class="rec-val" id="recMvL">6.6</span>
-                <span class="rec-unit">L/min</span>
+              <div class="rec-stepper-wrap">
+                <button type="button" class="btn-step btn-step-sm" data-target="setMv" data-action="dec" aria-label="MV減少">−</button>
+                <div class="input-unit-wrap">
+                  <input type="number" id="setMvInput" class="num-direct-input num-input-large text-amber" min="2.0" max="22.0" step="0.1" value="6.6" inputmode="decimal" />
+                  <span class="input-unit">L/min</span>
+                </div>
+                <button type="button" class="btn-step btn-step-sm" data-target="setMv" data-action="inc" aria-label="MV増加">＋</button>
               </div>
               <div class="card-slider-wrap">
                 <input type="range" id="setMvSlider" class="custom-range range-amber" min="2.0" max="22.0" step="0.1" value="6.6" />
               </div>
               <div class="rec-sub"><span id="recMvMl">6,600</span> mL/min</div>
-              <div class="rec-note text-amber">動かすとVt・RR・Tiが自動追従</div>
+              <div class="rec-note text-amber">※Vt・RR・Tiが追従</div>
             </div>
 
             <!-- ② 一回換気量 (Vt) -->
-            <div class="rec-card card-vt">
+            <div class="rec-card card-vt" id="cardVt">
               <div class="rec-card-top">
                 <span class="rec-label">② 一回換気量 (Vt)</span>
                 <span class="rec-pill pill-sky" id="pillRecVt">推奨 470</span>
               </div>
-              <div class="rec-val-wrap">
-                <span class="rec-val text-sky" id="recVt">470</span>
-                <span class="rec-unit">mL</span>
+              <div class="rec-stepper-wrap">
+                <button type="button" class="btn-step btn-step-sm" data-target="setVt" data-action="dec" aria-label="Vt減少">−</button>
+                <div class="input-unit-wrap">
+                  <input type="number" id="setVtInput" class="num-direct-input num-input-large text-sky" min="200" max="950" step="10" value="470" inputmode="numeric" />
+                  <span class="input-unit">mL</span>
+                </div>
+                <button type="button" class="btn-step btn-step-sm" data-target="setVt" data-action="inc" aria-label="Vt増加">＋</button>
               </div>
               <div class="card-slider-wrap">
                 <input type="range" id="setVtSlider" class="custom-range" min="200" max="950" step="10" value="470" />
@@ -409,48 +381,56 @@
             </div>
 
             <!-- ③ 呼吸回数 (RR) -->
-            <div class="rec-card card-rr">
+            <div class="rec-card card-rr" id="cardRr">
               <div class="rec-card-top">
                 <span class="rec-label">③ 呼吸回数 (RR)</span>
                 <span class="rec-pill pill-teal" id="pillRecRr">推奨 14</span>
               </div>
-              <div class="rec-val-wrap">
-                <span class="rec-val text-teal" id="recRr">14</span>
-                <span class="rec-unit">回/分</span>
+              <div class="rec-stepper-wrap">
+                <button type="button" class="btn-step btn-step-sm" data-target="setRr" data-action="dec" aria-label="RR減少">−</button>
+                <div class="input-unit-wrap">
+                  <input type="number" id="setRrInput" class="num-direct-input num-input-large text-teal" min="6" max="42" step="1" value="14" inputmode="numeric" />
+                  <span class="input-unit">回/分</span>
+                </div>
+                <button type="button" class="btn-step btn-step-sm" data-target="setRr" data-action="inc" aria-label="RR増加">＋</button>
               </div>
               <div class="card-slider-wrap">
                 <input type="range" id="setRrSlider" class="custom-range range-teal" min="6" max="42" step="1" value="14" />
               </div>
               <div class="rec-sub">1周期: <span id="recCycleTime">4.3</span> 秒</div>
-              <div class="rec-note">動かすとVtが自動反比例連動</div>
+              <div class="rec-note">※Vtと連動</div>
             </div>
 
             <!-- ④ 吸気時間 (Ti) -->
-            <div class="rec-card card-ti">
+            <div class="rec-card card-ti" id="cardTi">
               <div class="rec-card-top">
                 <span class="rec-label">④ 吸気時間 (Ti)</span>
-                <span class="rec-pill pill-purple" id="pillRecTi">推奨 1.0</span>
+                <span class="rec-pill pill-purple" id="pillRecTi">推奨 1.00</span>
               </div>
-              <div class="rec-val-wrap">
-                <span class="rec-val text-purple" id="recTi">1.00</span>
-                <span class="rec-unit">秒</span>
+              <div class="rec-stepper-wrap">
+                <button type="button" class="btn-step btn-step-sm" data-target="setTi" data-action="dec" aria-label="Ti減少">−</button>
+                <div class="input-unit-wrap">
+                  <input type="number" id="setTiInput" class="num-direct-input num-input-large text-purple" min="0.40" max="2.20" step="0.05" value="1.00" inputmode="decimal" />
+                  <span class="input-unit">秒</span>
+                </div>
+                <button type="button" class="btn-step btn-step-sm" data-target="setTi" data-action="inc" aria-label="Ti増加">＋</button>
               </div>
               <div class="card-slider-wrap">
                 <input type="range" id="setTiSlider" class="custom-range range-purple" min="0.40" max="2.20" step="0.05" value="1.00" />
               </div>
-              <div class="rec-sub">I:E比 <strong id="recIeRatio">1 : 2.0</strong></div>
-              <div class="rec-note" id="recTiNote">呼気 Te: 3.3s (≥ 2×RCexp)</div>
+              <div class="rec-sub">I:E比 <strong id="recIeRatio">1 : 3.3</strong></div>
+              <div class="rec-note" id="recTiNote">呼気 Te: 3.3s (≧ 2×RCexp)</div>
             </div>
           </div>
 
-          <!-- 推定駆動圧 (Driving Pressure) -->
+          <!-- 駆動圧 (Driving Pressure) -->
           <div class="safety-banner">
             <div class="safety-icon">🛡️</div>
             <div class="safety-info">
               <div class="safety-title">設定一回換気量での推定 駆動圧 (Driving Pressure: ΔP = Vt / C)</div>
               <div class="safety-desc">
-                推定駆動圧: <strong id="dpDisplay">9.4</strong> cmH2O
-                <span class="safety-status status-good" id="dpStatus">良好 (≤ 14 cmH2O)</span>
+                駆動圧: <strong id="dpDisplay">9.4</strong> cmH2O
+                <span class="safety-status status-good" id="dpStatus">良好 (≦ 14 cmH2O)</span>
               </div>
             </div>
           </div>
@@ -464,21 +444,28 @@
           </div>
 
           <div class="canvas-wrapper">
+            <!-- インタラクティブ情報バナー (タップ/ホバー表示) -->
+            <div class="graph-info-banner" id="graphInfoBanner">
+              <span class="info-badge">現在選択:</span>
+              <span class="info-val" id="graphActiveInfo">設定点: RR 14 回/分 / Vt 470 mL (MV 6.6 L/min, 推定ΔP 9.4 cmH2O)</span>
+            </div>
+
             <canvas id="optCanvas" width="560" height="280"></canvas>
+            
             <div class="canvas-legend">
               <div class="legend-pill">
-                <span class="legend-dot target-dot"></span>
-                <span class="legend-label">現在設定点:</span>
+                <span class="legend-symbol symbol-circle">●</span>
+                <span class="legend-label">現在設定点 (手動調整):</span>
                 <span class="legend-val" id="graphTargetVal">14 bpm / 470 mL</span>
               </div>
               <div class="legend-pill">
-                <span class="legend-dot rec-dot"></span>
-                <span class="legend-label">Otis推奨点:</span>
+                <span class="legend-symbol symbol-diamond">◆</span>
+                <span class="legend-label">Otis推奨点 (最適解):</span>
                 <span class="legend-val-rec" id="graphRecVal">14 bpm / 470 mL</span>
               </div>
               <div class="legend-pill">
                 <span class="legend-line frame-line"></span>
-                <span class="legend-label">安全枠 (過膨張・無効換気・AutoPEEP防止)</span>
+                <span class="legend-label">安全枠 (低換気・過膨張・AutoPEEP防止)</span>
               </div>
             </div>
           </div>
@@ -488,12 +475,12 @@
 
     <!-- フッター -->
     <footer class="footer">
-      <p>※ 本ツールは Otis最小呼吸仕事量理論・呼気時定数解析・Devine式に基づき換気パラメータを算出しています。</p>
-      <p>※ 人工呼吸器の設定変更および臨床判断は、必ず医師の指示および患者状態・動脈血液ガス（ABG）に基づき行ってください。</p>
+      <p>※ 本ツールは Otis最小呼吸仕事物理論・呼気時定数解析・Devine式に基づく換気パラメータ算出を行っています。</p>
+      <p>※ 人工呼吸器の設定変更および臨床判断は、必ず医師の指示および患者状態・動脈血液ガス(ABG)に基づき行ってください。</p>
     </footer>
   </div>
 
-  <!-- 旧キャッシュ混在対策用フォールバック要素 -->
+  <!-- キャッシュ混在対策用フォールバック要素 -->
   <div style="display:none;" id="placeholder"></div>
   <div style="display:none;" id="resultsGrid"></div>
   <input type="hidden" id="heightSlider" value="170" />
@@ -503,6 +490,6 @@
   <div style="display:none;" id="tabAsv"></div>
   <div style="display:none;" id="viewAsv"></div>
 
-  <script src="app.js?v=20260920_2"></script>
+  <script src="app.js?v=20260920_3"></script>
 </body>
 </html>
