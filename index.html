@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&family=Noto+Sans+JP:wght@400;500;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=20260920_12" />
+  <link rel="stylesheet" href="style.css?v=20260920_13" />
 </head>
 <body>
   <!-- トースト通知 -->
@@ -675,7 +675,7 @@
 
 
 
-  <!-- 取扱説明書 ＆ 初心者向け呼吸療法解説書 モーダル -->
+    <!-- 取扱説明書 ＆ 初心者向け呼吸療法解説書 モーダル -->
   <div id="manualModal" class="manual-modal hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="manual-modal-overlay" id="manualOverlay" onclick="window.closeManualModal && window.closeManualModal()"></div>
     <div class="manual-modal-card">
@@ -692,11 +692,11 @@
       <div class="manual-nav-tabs">
         <button type="button" class="manual-tab-btn active" id="btnTabManualApp">
           <span class="m-tab-icon">📱</span>
-          <span class="m-tab-label">アプリ取扱説明書</span>
+          <span class="m-tab-label">アプリ取扱説明書 (工学・機能詳細)</span>
         </button>
         <button type="button" class="manual-tab-btn" id="btnTabManualEdu">
           <span class="m-tab-icon">💡</span>
-          <span class="m-tab-label">やさしい呼吸療法解説書 (初心者向け)</span>
+          <span class="m-tab-label">やさしい呼吸療法解説書 (ベッドサイド・勉強会向け)</span>
         </button>
       </div>
 
@@ -706,7 +706,7 @@
         <div id="manualTabApp" class="manual-tab-content active">
           <section class="manual-section">
             <h3 class="manual-sec-title">🌟 本アプリの目的と特長</h3>
-            <p class="manual-p">本ツールは、<strong>ASV（適応支持換気）非搭載の一般人工呼吸器</strong>であっても、患者の予測体重（PBW）・肺力学（抵抗・コンプライアンス）・血液ガス（PaCO2）に基づき、<strong>「肺を痛めず、かつ呼吸仕事が最小となる最適な換気パラメータ（MV, Vt, RR, Ti, PEEP）」</strong>をベッドサイドで瞬時にシミュレーションできる臨床意思決定支援（CDSS）ツールです。</p>
+            <p class="manual-p">本ツールは、<strong>ASV（適応支持換気）非搭載の一般人工呼吸器</strong>であっても、患者の予測体重（PBW）・肺力学（気道抵抗・コンプライアンス）・動脈血液ガス（PaCO2）に基づき、<strong>「数式ベースの理想論」を「実臨床のベッドサイド判断」へ引き上げる臨床意思決定支援（CDSS）ツール</strong>です。</p>
           </section>
 
           <section class="manual-section">
@@ -715,17 +715,91 @@
               <div class="manual-mode-card">
                 <div class="m-mode-badge badge-basic">📋 基本モード</div>
                 <div class="m-mode-subtitle">初期設定・急患搬送時</div>
-                <p>患者の<strong>性別と身長</strong>を入力するだけで、ガイドライン準拠の<strong>予測体重（PBW）</strong>と推奨一回換気量（6〜8 mL/kg）、基準分時換気量（100 mL/kg/min）を直ちに算出します。緊急時や人工呼吸器装着直後のファーストセッティングに最適です。</p>
+                <p>患者の<strong>性別と身長</strong>を入力するだけで、ガイドライン準拠の<strong>予測体重（PBW）</strong>、推奨一回換気量（6〜8 mL/kg）、基準分時換気量（100 mL/kg/min）を直ちに算出します。病態別の代謝変動に応じた%MVクイック適用テーブルも搭載しています。</p>
               </div>
               <div class="manual-mode-card">
                 <div class="m-mode-badge badge-opt">🫁 力学最適化モード</div>
                 <div class="m-mode-subtitle">肺力学モニタ連動・Otis最適化</div>
-                <p>人工呼吸器のモニタから得られる<strong>気道抵抗（R）・静肺コンプライアンス（C）・EtCO2</strong>を入力。Otis最小呼吸仕事理論に基づく推奨呼吸回数・換気量・吸気時間を導き出し、呼気時間不足ゾーンを自動除外した動的安全枠グラフで直感的に可視化します。</p>
+                <p>人工呼吸器のモニタから得られる<strong>気道抵抗（R）・静肺コンプライアンス（C）・EtCO2</strong>を入力。Otis最小呼吸仕事理論に基づく推奨換気設定を導き出し、呼気時間不足ゾーンを自動除外した動的安全枠グラフで直感的に可視化します。</p>
               </div>
               <div class="manual-mode-card">
                 <div class="m-mode-badge badge-adv">🔬 高度臨床 (ABG & 圧) モード</div>
                 <div class="m-mode-subtitle">血液ガス補正・肺保護限界圧評価</div>
-                <p><strong>採血データ（PaCO2・pH）</strong>から必要分時換気量を自動補正。さらに<strong>設定PEEP</strong>を入力することで、肺保護基準である<strong>プラトー圧（Pplat ≦ 30 cmH2O）や駆動圧（ΔP ≦ 14 cmH2O）</strong>、呼気不全による<strong>Auto-PEEPリスク</strong>を厳密に評価・警告します。</p>
+                <p><strong>採血データ（PaCO2・pH）</strong>から必要換気量を自動逆算。設定PEEP下での<strong>プラトー圧（Pplat ≦ 30 cmH2O）や駆動圧（ΔP ≦ 14 cmH2O）</strong>、呼気不全による<strong>Auto-PEEPリスク</strong>をリアルタイムに自動評価・警告します。</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- 高度臨床モードの4大工学・生理学ロジック解説 -->
+          <section class="manual-section">
+            <h3 class="manual-sec-title">🔬 高度臨床モードを支える4大工学・生理学ロジック</h3>
+            <div class="edu-chapter-card">
+              <div class="chapter-header">
+                <span class="chapter-badge">ロジック 1</span>
+                <h4 class="chapter-title">動脈血液ガス連動による目標MV / RR自動計算</h4>
+              </div>
+              <div class="chapter-body">
+                <p class="chapter-p">実臨床ではシャントやV/Q不均等によりP(a-ET)CO2較差が開大するため、EtCO2単独での換気量調整には限界があります。また、代謝性アシドーシス時の代償性過換気要求（Winter's formula等に基づく目標設定）や、ARDSでの許容性高炭酸ガス血症（Permissive hypercapnia）など、症例ごとに「狙うべきPaCO2」は大きく異なります。</p>
+                <div class="key-point-box">
+                  <span class="kp-icon">📐</span>
+                  <span class="kp-text"><strong>反比例計算式：</strong>$$	ext{Target MV} = 	ext{Current MV} 	imes \left( rac{	ext{Current } 	ext{PaCO}_2}{	ext{Target } 	ext{PaCO}_2} ight)$$（※CO2産生量 VCO2 一定の仮定）</span>
+                </div>
+                <p class="chapter-p">この計算結果を設定スライダーへ連動させることで、換気回数（RR）と1回換気量（Vt）の組み合わせを直感的に再構築できます。</p>
+              </div>
+            </div>
+
+            <div class="edu-chapter-card">
+              <div class="chapter-header">
+                <span class="chapter-badge">ロジック 2</span>
+                <h4 class="chapter-title">死腔率（Vd/Vt）の推計・入力オプション</h4>
+              </div>
+              <div class="chapter-body">
+                <p class="chapter-p">呼吸仕事量を最小化する最適呼吸回数を導く「Otisの式」では、解剖学的・生理学的死腔（Vd）の大きさが解に大きく影響します。Vdが増大すると、必要肺胞換気量を担保するために1回換気量を大きくするか呼吸回数を増やさなければなりませんが、高すぎても低すぎても仕事量が増大します。</p>
+                <div class="key-point-box">
+                  <span class="kp-icon">📐</span>
+                  <span class="kp-text"><strong>Bohr-Enghoff 変法による簡易死腔率：</strong>$$	ext{推計 } V_d/V_t = rac{	ext{PaCO}_2 - 	ext{EtCO}_2}{	ext{PaCO}_2}$$</span>
+                </div>
+                <p class="chapter-p">重症ARDSや肺血栓塞栓症（PTE）では肺胞死腔が跳ね上がります。本アプリではこの推計値をOtisの計算式へフィードバックすることで、健常肺モデルの固定値（2.2 mL/kg や 150 mL）から、病態に応じた実動的な等肺胞換気量カーブへ補正しています。</p>
+              </div>
+            </div>
+
+            <div class="edu-chapter-card">
+              <div class="chapter-header">
+                <span class="chapter-badge">ロジック 3</span>
+                <h4 class="chapter-title">吸気流速波形および気道内圧（Ppeak / Pplat）の推計</h4>
+              </div>
+              <div class="chapter-body">
+                <p class="chapter-p">圧外傷（Barotrauma）および容量損傷（Volutrauma）を防ぐ肺保護換気では、肺胞にかかる圧（Pplat）と、気道抵抗を含んだ最大圧（Ppeak）の峻別が不可欠です。</p>
+                <div class="limit-press-grid">
+                  <div class="limit-card">
+                    <div class="limit-badge badge-p-plat">推定式</div>
+                    <h5 class="limit-title">推定 Pplat = PEEP + (Vt / C)</h5>
+                    <p>肺胞そのものにかかる静止圧。30 cmH2O 超過で赤色アラートを発令します。</p>
+                  </div>
+                  <div class="limit-card">
+                    <div class="limit-badge badge-dp">波形による相違</div>
+                    <h5 class="limit-title">矩形波 vs 漸減波</h5>
+                    <p><strong>矩形波：</strong>Ppeak = Pplat + (吸気流速 × R)<br /><strong>漸減波：</strong>送気初期に最大流速が来るため、吸気終末PpeakはPplatに極めて近似。</p>
+                  </div>
+                </div>
+                <p class="chapter-p">求めた推定PplatやPpeakが安全限界値（30 cmH2O）を超過した場合に視覚的アラートを出すことで、無茶なショートTi設定や過大なVt設定を事前にスクリーニングできます。</p>
+              </div>
+            </div>
+
+            <div class="edu-chapter-card">
+              <div class="chapter-header">
+                <span class="chapter-badge">ロジック 4</span>
+                <h4 class="chapter-title">呼気不全・Auto-PEEPリスクの動的判定（Te vs 3〜4 RCexp）</h4>
+              </div>
+              <div class="chapter-body">
+                <p class="chapter-p">COPDや気管支喘息など気道抵抗（R）が高い症例、あるいは高換気要求で呼吸回数（RR）を上げざるを得ない症例では、呼気時間（Te）の不足による内因性PEEP（Auto-PEEP / dynamic hyperinflation）が最大のリスクとなります。</p>
+                <div class="time-constant-box">
+                  <div class="tc-item"><strong>1 RCexp 経過：</strong>呼出率 約 63%</div>
+                  <div class="tc-item"><strong>2 RCexp 経過：</strong>呼出率 約 86%</div>
+                  <div class="tc-item"><strong>3 RCexp 経過：</strong>呼出率 約 95%（臨床的安全基準）</div>
+                  <div class="tc-item tc-safe"><strong>4 RCexp 経過：</strong>呼出率 約 98%（完全呼出とみなす基準）</div>
+                </div>
+                <p class="chapter-p">設定されたRRと吸気時間（Ti）から得られる呼気時間（Te = (60/RR) - Ti）が「3 × RCexp」を下回る場合、未呼出ガスが肺内に残存しAuto-PEEPが発生します。シミュレーター上で「Te < 3 × RCexp」をトリガーとして警告を出し、グラフィック安全枠で呼気不足ゾーンを自動除外・マスク表示することは、実臨床でのトラッピング事故を未然に防ぐ教育的・臨床的ガイドとして極めて有用です。</p>
               </div>
             </div>
           </section>
@@ -733,65 +807,38 @@
           <section class="manual-section">
             <h3 class="manual-sec-title">🎛 直感的な3通りの操作方法</h3>
             <div class="manual-tip-box">
-              <div class="tip-item">
-                <span class="tip-icon">🔘</span>
-                <div><strong>1. スライダー操作：</strong>ツマミをドラッグして広範囲の数値を直感的に素早く動かせます。</div>
-              </div>
-              <div class="tip-item">
-                <span class="tip-icon">➕➖</span>
-                <div><strong>2. ステッパーボタン：</strong>［−］［＋］ボタンをタップして、1単位ずつの正確な微調整が可能です（手袋着用時や片手操作でも確実）。</div>
-              </div>
-              <div class="tip-item">
-                <span class="tip-icon">🔢</span>
-                <div><strong>3. 数値直接入力：</strong>数値表示枠を直接タップするとテンキーが起動し、狙った数値を直接キー入力できます（Enterキーまたは枠外タップで即時反映）。</div>
-              </div>
-            </div>
-          </section>
-
-          <section class="manual-section">
-            <h3 class="manual-sec-title">🔗 4連連動スライダーのシミュレーション機構</h3>
-            <p class="manual-p">ステップ3の換気調整スライダーは、臨床生理学の公式に基づきリアルタイムに連動します：</p>
-            <ul class="manual-list">
-              <li><strong>分時換気量（MV）を変更：</strong>換気需要に合わせて一回換気量（Vt）と呼吸回数（RR）、吸気時間（Ti）が自動追従します。</li>
-              <li><strong>一回換気量（Vt）を変更：</strong>設定した分時換気量を維持するため、呼吸回数（RR）が自動反比例連動します（Vtを増やせばRRが低下）。</li>
-              <li><strong>呼吸回数（RR）を変更：</strong>一回換気量を維持したまま、分時換気量（MV）が追従計算されます。</li>
-              <li><strong>吸気時間（Ti）を変更：</strong>I:E比および呼気時間（Te）がリアルタイムに再計算され、呼気不足アラートが連動します。</li>
-            </ul>
-          </section>
-
-          <section class="manual-section">
-            <h3 class="manual-sec-title">📊 セーフティーグラフィック（Otis曲線＆安全枠）の読み方</h3>
-            <div class="manual-chart-guide">
-              <div class="guide-item">
-                <span class="symbol-circle">●</span>
-                <div><strong>現在設定点（黄色い円）：</strong>あなたの現在スライダー設定値（RR / Vt）のプロット位置です。</div>
-              </div>
-              <div class="guide-item">
-                <span class="symbol-diamond">◆</span>
-                <div><strong>Otis推奨点（青い菱形/三角）：</strong>呼吸仕事率（WOB）が物理的に最小となる理想のプロット位置です。</div>
-              </div>
-              <div class="guide-item">
-                <span class="symbol-frame">▢</span>
-                <div><strong>動的安全枠（水色の点線枠）：</strong>患者の呼気時定数（3×RCexp）から算出した「安全に息を吐き切れる呼気時間制限」と「肺保護上限」を満たす許容エリアです。<strong>黄色い円（●）がこの枠内に収まるように換気を設定</strong>してください。</div>
-              </div>
+              <div class="tip-item"><span class="tip-icon">🔘</span><div><strong>スライダー操作：</strong>広範囲の数値を素早く直感的に動かせます。</div></div>
+              <div class="tip-item"><span class="tip-icon">➕➖</span><div><strong>ステッパーボタン：</strong>［−］［＋］ボタンで1単位ずつ確実に微調整できます。</div></div>
+              <div class="tip-item"><span class="tip-icon">🔢</span><div><strong>数値直接入力：</strong>数値をタップしてテンキーから直接入力できます。</div></div>
             </div>
           </section>
         </div>
 
         <!-- ================= タブ2: 初心者向け呼吸療法解説書 ================= -->
         <div id="manualTabEdu" class="manual-tab-content" style="display: none;">
+          <!-- 導入メッセージ -->
           <div class="edu-intro-card">
             <div class="edu-intro-icon">👩‍⚕️👨‍⚕️</div>
             <div class="edu-intro-text">
-              <strong>人工呼吸管理に携わるすべてのスタッフへ：</strong><br />
-              「人工呼吸器の設定って難しそう…」「なぜこの数字にするのかよく分からない…」という疑問を、身近な道具（風船やストロー）に例えてやさしく解説します。ここを押さえるだけで、ベッドサイドの観察力と安全性が劇的に向上します！
+              <strong>病棟の看護師さん・若手スタッフ向け ベッドサイド学習ガイド：</strong><br />
+              勉強会やカンファレンスでそのまま話せるトーンと構成でまとめました。数式を丸暗記するのではなく、<strong>「現場で何が起きているか」「なぜその設定だと危ないのか」</strong>という臨床の直感に結びつけてやさしく解説します！
             </div>
           </div>
 
-          <!-- 第1章 -->
+          <!-- 全体のポイント -->
+          <div class="key-point-box">
+            <span class="kp-icon">🌟</span>
+            <span class="kp-text">
+              <strong>全体のポイント（まず最初に伝えること）：</strong><br />
+              人工呼吸器の設定を考えるとき、機械の画面上の数字だけを見ていると、患者さんの体の中で起きている変化を見落としてしまいます。<br />
+              本アプリに搭載された仕組みは、血液ガスの結果や肺の硬さ・空気の通りにくさを組み合わせて、<strong>「患者さんの肺に本当に優しく、安全な設定」を誰でも迷わず判断できるようにするためのアシスト機能</strong>です。
+            </span>
+          </div>
+
+          <!-- 第1章: PBW -->
           <div class="edu-chapter-card">
             <div class="chapter-header">
-              <span class="chapter-badge">第 1 章</span>
+              <span class="chapter-badge">基礎 1</span>
               <h4 class="chapter-title">なぜ体重計の重さではなく「予測体重 (PBW)」を使うの？</h4>
             </div>
             <div class="chapter-body">
@@ -800,15 +847,14 @@
                 <span class="kp-text"><strong>核心ポイント：</strong>「人は太っても、肺のサイズは太りません！」</span>
               </div>
               <p class="chapter-p">患者さんの体重が50kgから脂肪で80kgに増えても、肋骨に囲まれた胸郭や<strong>肺の容積（大きさ）は生まれつきの骨格（身長と性別）で決まっており、全く変わりません</strong>。</p>
-              <p class="chapter-p">もし実体重の80kgに合わせて換気量（8 mL/kg ＝ 640 mL）を入れてしまうと、50kg用の小さな肺にとっては強烈な過膨張となり、肺胞が破裂したり（気胸）、炎症が悪化して肺が壊れてしまいます。</p>
-              <p class="chapter-p">そのため、世界中のガイドラインで<strong>「人工呼吸器の設定は、実体重ではなく必ず身長から計算した予測体重（PBW）で行う」</strong>と定められています。</p>
+              <p class="chapter-p">もし実体重の80kgに合わせて換気量（8 mL/kg ＝ 640 mL）を入れてしまうと、50kg用の小さな肺にとっては強烈な過膨張となり、肺胞が破裂したり（気胸）、炎症が悪化して肺が壊れてしまいます。そのため人工呼吸管理では必ず身長から計算した予測体重（PBW）を基準にします。</p>
             </div>
           </div>
 
-          <!-- 第2章 -->
+          <!-- 第2章: 肺保護換気 -->
           <div class="edu-chapter-card">
             <div class="chapter-header">
-              <span class="chapter-badge">第 2 章</span>
+              <span class="chapter-badge">基礎 2</span>
               <h4 class="chapter-title">一回換気量（Vt）はなぜ「6〜8 mL/kg」なの？（肺保護換気戦略）</h4>
             </div>
             <div class="chapter-body">
@@ -816,16 +862,15 @@
                 <span class="kp-icon">🎈</span>
                 <span class="kp-text"><strong>核心ポイント：</strong>「風船を限界までパンパンに膨らませ続けない」</span>
               </div>
-              <p class="chapter-p">昔（2000年以前）は「たくさん換気すれば血液中の酸素が増える」と考え、10〜15 mL/kgもの大換気量を入れていました。しかし、大規模な研究（ARDSNet研究）により、大きな換気量は正常な肺胞まで引き裂き、死亡率を大幅に悪化させることが判明しました。</p>
-              <p class="chapter-p">特に肺炎やARDS（急性呼吸促迫症候群）の肺は、全体が均一に使えるわけではなく、ガス交換ができる健康な肺胞はごく一部しか残っていません（<strong>Baby Lung: 赤ちゃんの肺ほどの大きさ</strong>）。</p>
-              <p class="chapter-p">小さな肺胞をこれ以上壊さないため、<strong>「一回換気量は6〜8 mL/kg（重症時は4〜6 mL/kg）に抑える」</strong>ことが、人工呼吸管理で最も確実に患者の命を救う基本ルール（肺保護換気）です。</p>
+              <p class="chapter-p">昔は「たくさん換気すれば酸素が増える」と10〜15 mL/kgもの大換気量を入れていましたが、大規模研究（ARDSNet）で正常な肺胞まで引き裂き死亡率を悪化させることが判明しました。</p>
+              <p class="chapter-p">病気の肺は使える肺胞が赤ちゃんの肺ほどに小さくなっています（Baby Lung）。小さな肺胞を守るため、<strong>「一回換気量は6〜8 mL/kg（重症時は4〜6 mL/kg）に抑える」</strong>ことが世界共通の絶対ルールです。</p>
             </div>
           </div>
 
-          <!-- 第3章 -->
+          <!-- 第3章: RとC -->
           <div class="edu-chapter-card">
             <div class="chapter-header">
-              <span class="chapter-badge">第 3 章</span>
+              <span class="chapter-badge">基礎 3</span>
               <h4 class="chapter-title">気道抵抗（R）とコンプライアンス（C）って何？</h4>
             </div>
             <div class="chapter-body">
@@ -833,89 +878,114 @@
                 <div class="analogy-card">
                   <div class="analogy-title">🌬 気道抵抗 (R) ＝「ストローの細さ」</div>
                   <div class="analogy-sub">正常値: 5 〜 10 cmH2O/(L/s)</div>
-                  <p>空気が気道を通るときの「通りにくさ・摩擦抵抗」です。タピオカ用の太いストローなら楽に息が吸えますが、細いマドラーで息を吸うとものすごい力が必要です。</p>
-                  <ul class="analogy-list">
-                    <li>痰がゴロゴロ詰まっている</li>
-                    <li>気管チューブが細すぎる・噛んでいる</li>
-                    <li>喘息やCOPDで気管支が細く収縮している</li>
-                  </ul>
-                  <p class="analogy-foot">これらが起きると気道抵抗（R）が急上昇します。</p>
+                  <p>空気の通りにくさです。太いストローなら楽ですが、細いマドラーで吸うと疲れます。痰詰まり、チューブの細さ・屈曲、喘息・COPDの気管支攣縮で上昇します。</p>
                 </div>
                 <div class="analogy-card">
                   <div class="analogy-title">🎈 コンプライアンス (C) ＝「風船の柔らかさ」</div>
                   <div class="analogy-sub">正常値: 50 〜 80 mL/cmH2O</div>
-                  <p>肺と胸郭の「膨らみやすさ・柔らかさ」です。柔らかい風船は少しの力で膨らみますが、硬い新品のゴム風船は強い圧力をかけないと膨らみません。</p>
-                  <ul class="analogy-list">
-                    <li>ARDSや重症肺炎で肺胞が水浸し</li>
-                    <li>間質性肺炎で肺が線維化してガチガチ</li>
-                    <li>無気肺で肺胞が潰れて硬くなっている</li>
-                  </ul>
-                  <p class="analogy-foot">これらが起きるとコンプライアンス（C）が著明に低下（20〜30以下）します。</p>
+                  <p>肺の膨らみやすさです。柔らかい風船はすぐ膨らみますが、硬いゴム風船は強い力が必要です。ARDSや重症肺炎、肺水腫、間質性肺炎で著明に低下します。</p>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- 第4章 -->
+          <!-- 第4章: CO2逆算機能 -->
           <div class="edu-chapter-card">
             <div class="chapter-header">
-              <span class="chapter-badge">第 4 章</span>
-              <h4 class="chapter-title">呼気時定数（RCexp）とAuto-PEEP（吐き切れない危険）</h4>
+              <span class="chapter-badge">実践 1</span>
+              <h4 class="chapter-title">「二酸化炭素（CO2）の溜まり具合に合わせて、安全な換気量を逆算する」機能</h4>
+            </div>
+            <div class="chapter-body">
+              <div class="key-point-box">
+                <span class="kp-icon">❓</span>
+                <span class="kp-text"><strong>現場でのよくある疑問：</strong>「血液ガスを取ったらCO2が高かった（低かった）けれど、呼吸回数や1回換気量をどれくらい増やせば（減らせば）狙い通りの値になるのか、感覚でいじってよいのか分からない…」</span>
+              </div>
+              <p class="chapter-p"><strong>【何をしているか】</strong><br />患者さんの「今のCO2」と「目指したい目標CO2」を入れると、1分間に必要な全体の空気の量（分時換気量: MV）をパッと計算して提案してくれる仕組みです。</p>
+              <div class="analogy-card" style="background: rgba(15, 23, 42, 0.7);">
+                <div class="analogy-title">🏠 わかりやすいイメージ：「換気扇で煙を追い出す」</div>
+                <p>部屋に充満した煙を換気扇で追い出す場面を想像してください。煙の濃度が2倍なら、換気の強さを2倍にすれば元の薄さに戻ります。<br />
+                ただし、モニターに出ている呼気の数値（EtCO2）は、重症な方ほど実際の血液（PaCO2）と数字がズレます。血液の本当の数字をもとに逆算することで、<strong>「勘で設定して換気しすぎた・足りなかった」という失敗を確実に防ぎます</strong>。</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 第5章: 死腔と呼吸リズム -->
+          <div class="edu-chapter-card">
+            <div class="chapter-header">
+              <span class="chapter-badge">実践 2</span>
+              <h4 class="chapter-title">「無駄になってしまう空気の割合（死腔）を計算して、無理のない呼吸リズムを見つける」機能</h4>
+            </div>
+            <div class="chapter-body">
+              <div class="key-point-box">
+                <span class="kp-icon">❓</span>
+                <span class="kp-text"><strong>現場でのよくある疑問：</strong>「呼吸回数を増やして一生懸命換気しているはずなのに、なぜかCO2が全然下がらない…」</span>
+              </div>
+              <p class="chapter-p"><strong>【何をしているか】</strong><br />吸った空気のうち、「酸素やCO2の交換に使われず、気道などを素通りして捨てられる無駄な空気（死腔）」がどれくらいあるかを推計し、患者さんが一番ラクに呼吸できる回数を割り出します。</p>
+              <div class="analogy-card" style="background: rgba(15, 23, 42, 0.7);">
+                <div class="analogy-title">🥤 わかりやすいイメージ：「長すぎるストローでの呼吸」</div>
+                <p>長すぎるストローで呼吸する場面を思い浮かべてください。どれだけ浅く速くハアハア呼吸しても、ストローの中の同じ空気を往復させているだけで全然新鮮な空気が肺胞に届きません。<br />
+                肺の血管が詰まったり（肺塞栓）、肺全体がひどく荒れたり（重症ARDS）すると、この無駄な空間が跳ね上がります。無駄の多さに合わせて<strong>「これくらいの回数と深さで換気しないと、患者さんの肺に負担がかかりすぎるよ」</strong>と教えてくれる機能です。</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 第6章: 肺のパンクリスク事前通知 -->
+          <div class="edu-chapter-card">
+            <div class="chapter-header">
+              <span class="chapter-badge">実践 3</span>
+              <h4 class="chapter-title">「肺がパンクするリスクを事前に知らせる」機能</h4>
+            </div>
+            <div class="chapter-body">
+              <div class="key-point-box">
+                <span class="kp-icon">❓</span>
+                <span class="kp-text"><strong>現場でのよくある疑問：</strong>「換気量を増やしたいけれど、気道内圧のアラームが鳴ってしまわないか、肺が破れたり傷ついたりしないか不安…」</span>
+              </div>
+              <p class="chapter-p"><strong>【何をしているか】</strong><br />送気したときに「肺の奥（肺胞）に実際にかかる圧力（プラトー圧）」と「空気の通り道（気管チューブなど）の摩擦を含めた最大の圧力（最高気道圧）」を前もって予測し、危険なライン（一般的に30 cmH2O以上）を超えるようなら警告を出します。</p>
+              <div class="analogy-card" style="background: rgba(15, 23, 42, 0.7);">
+                <div class="analogy-title">🎈 わかりやすいイメージ：「細い風船を力任せに膨らませる」</div>
+                <p>細い風船を力任せに膨らまそうとすると、口元には強い圧力がかかりますし、風船自体もパンパンに張り詰めて破れそうになります。<br />
+                肺も同じで、肺の奥にかかる圧が高すぎると肺胞が壊れてしまいます。設定を決定する前に<strong>「この設定だと圧が高すぎて危険です」と画面上で赤く知らせてくれる</strong>ため、安全な範囲内で設定を検討できます。</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 第7章: 呼気不足とAuto-PEEP防止 -->
+          <div class="edu-chapter-card">
+            <div class="chapter-header">
+              <span class="chapter-badge">実践 4</span>
+              <h4 class="chapter-title">「息を吐ききれていない（呼気不足）状態を見抜いて、回数の上げすぎを防ぐ」機能</h4>
             </div>
             <div class="chapter-body">
               <div class="key-point-box alert-kp">
-                <span class="kp-icon">⚠️</span>
-                <span class="kp-text"><strong>超重要：</strong>息を吐き切るには最低でも「3 × 時定数」の秒数が必要です！</span>
+                <span class="kp-icon">❓</span>
+                <span class="kp-text"><strong>現場でのよくある疑問：</strong>「CO2を飛ばしたいから呼吸回数を30回くらいまで上げたいけれど、上げて大丈夫なのかな？」</span>
               </div>
-              <p class="chapter-p">人工呼吸器は息を機械の力で押し込みますが、<strong>息を吐くときは機械が吸い出しているのではなく、肺自身の縮む力（ゴムの弾性）だけで自然に吐き出されています</strong>。</p>
-              <p class="chapter-p">肺の中の空気が吐き出されるスピードは、抵抗（R）とコンプライアンス（C）の積である<strong>「呼気時定数（RCexp ＝ R × C）」</strong>で決まります。</p>
-              <div class="time-constant-box">
-                <div class="tc-item"><strong>1 × RCexp 時間経過：</strong>約 63% しか吐き出せていない</div>
-                <div class="tc-item"><strong>2 × RCexp 時間経過：</strong>約 86% しか吐き出せていない</div>
-                <div class="tc-item tc-safe"><strong>3 × RCexp 時間経過：</strong>約 95% 吐き出し完了（安全圏！）</div>
-              </div>
-              <p class="chapter-p">もし呼吸回数を増やしすぎたり吸気時間を長くしすぎて、<strong>呼気時間（Te）が 3×RCexp より短くなると、吐き切る前に次の呼吸が始まってしまいます</strong>。</p>
-              <p class="chapter-p">行き場を失った空気は肺の奥にどんどん閉じ込められ、<strong>「空気トラッピング（内因性PEEP / Auto-PEEP）」</strong>が発生します。肺がパンパンに膨らみ続けて胸の中の静脈を圧迫し、<strong>心臓へ血液が戻らなくなって血圧が急降下（ショック）</strong>したり、最悪の場合は<strong>肺が破裂（緊張性気胸）</strong>して心停止に至ります。</p>
-            </div>
-          </div>
-
-          <!-- 第5章 -->
-          <div class="edu-chapter-card">
-            <div class="chapter-header">
-              <span class="chapter-badge">第 5 章</span>
-              <h4 class="chapter-title">命を守る2大限界圧（駆動圧 ΔP ≦ 14、プラトー圧 Pplat ≦ 30）</h4>
-            </div>
-            <div class="chapter-body">
-              <p class="chapter-p">人工呼吸器の画面にはいろいろな圧が表示されますが、肺胞を壊さないために看護師・CE・医師が絶対にチェックすべき2大限界値があります：</p>
-              <div class="limit-press-grid">
-                <div class="limit-card">
-                  <div class="limit-badge badge-p-plat">限界 1</div>
-                  <h5 class="limit-title">プラトー圧 (Pplat) ≦ 30 cmH2O</h5>
-                  <p>息を吸い切って空気の流れが止まった瞬間（インスピラトリーホールド時）に、肺胞そのものにかかる静止圧です。最高気道圧（Ppeak）と違ってストローの摩擦圧が含まれないため、「肺胞の本当の負担」を表します。<strong>30 cmH2O を超えると肺胞破裂のリスクが急上昇</strong>します。</p>
-                </div>
-                <div class="limit-card">
-                  <div class="limit-badge badge-dp">限界 2</div>
-                  <h5 class="limit-title">駆動圧 (Driving Pressure: ΔP) ≦ 14 cmH2O</h5>
-                  <p>「プラトー圧 － 設定PEEP」で計算される値（または Vt ÷ C）です。一回の呼吸で、硬い肺胞をどれだけ無理やりこじ開けたかを示します。<strong>ΔP が 14 cmH2O を超えると患者の死亡率が跳ね上がる</strong>ことが数多くの臨床試験で証明されています。超えている場合は、Vtを下げる（換気量を減らす）調整が必要です。</p>
-                </div>
+              <p class="chapter-p"><strong>【何をしているか】</strong><br />息をしっかり吐ききる前に次の息が送り込まれてしまい、肺の中に空気がどんどん溜まってしまう現象（空気の閉じ込め＝オートPEEP）が起きていないかを判定します。</p>
+              <div class="analogy-card" style="background: rgba(15, 23, 42, 0.7);">
+                <div class="analogy-title">🌬 わかりやすいイメージ：「風船がしぼみきる前に次の息を入れる」</div>
+                <p>風船を膨らませた後、指を離すと「シュー」っと自然にしぼんでいきます。肺が硬い方や、気管支が狭い方（COPDや喘息など）は、空気が抜けるのに時間がかかります。<br />
+                全部抜けきる前に次の空気を無理やり押し込むと、風船の中に空気が残ったままになり、最終的にパンパンになって心臓を圧迫して血圧が下がってしまいます。<br />
+                <strong>「この患者さんは息を吐くのに〇秒必要だから、これ以上呼吸回数を上げたら吐ききれなくなって危険ですよ」と、回数の上げすぎにブレーキをかけてくれる機能</strong>です。</p>
               </div>
             </div>
           </div>
 
-          <!-- 第6章 -->
-          <div class="edu-chapter-card">
+          <!-- まとめメッセージ -->
+          <div class="edu-chapter-card" style="border-color: rgba(56, 189, 248, 0.5); background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.7));">
             <div class="chapter-header">
-              <span class="chapter-badge">第 6 章</span>
-              <h4 class="chapter-title">血液ガス（PaCO2）とEtCO2の付き合い方（死腔の罠）</h4>
+              <span class="chapter-badge" style="background: #10b981;">まとめ</span>
+              <h4 class="chapter-title">ベッドサイドで共有できる4つの安心見守り</h4>
             </div>
             <div class="chapter-body">
-              <p class="chapter-p">カプノメータで呼気の二酸化炭素（EtCO2）をモニタリングしているとき、「EtCO2が35mmHgで正常だから換気はバッチリ！」と安心していませんか？ ここに大きな落とし穴があります。</p>
-              <p class="chapter-p">通常、動脈血のPaCO2と呼気のEtCO2の差は 2〜5 mmHg 程度ですが、<strong>重症肺炎・ARDS・肺塞栓・肺気腫などでは「空気は入るのに血液が流れていない肺胞（死腔）」が増大</strong>します。</p>
-              <p class="chapter-p">死腔が増えると、EtCO2は低めに出るのに、実際の動脈血（PaCO2）は60〜80mmHgまで跳ね上がっているという「見かけの正常」が生じます。</p>
-              <div class="key-point-box">
-                <span class="kp-icon">🩸</span>
-                <span class="kp-text"><strong>臨床Tips：</strong>定期的な動脈血液ガス（ABG）測定を行い、PaCO2とEtCO2の較差を確認しましょう。本ツールの「高度臨床モード」を使えば、実測PaCO2を入力するだけで目標PaCO2に必要な分時換気量（MV）が瞬時に逆算できます。</span>
+              <div class="manual-tip-box" style="background: rgba(15, 23, 42, 0.6);">
+                <div class="tip-item"><span class="tip-icon">1️⃣</span><div><strong>CO2を目標に合わせるための「ちょうどいい換気量」を計算する</strong></div></div>
+                <div class="tip-item"><span class="tip-icon">2️⃣</span><div><strong>無駄になる空気（死腔）の量を踏まえて「無駄のない呼吸回数」を探す</strong></div></div>
+                <div class="tip-item"><span class="tip-icon">3️⃣</span><div><strong>肺が張り裂けないよう「圧力の危険ライン（30 cmH2O）」を先回りして見張る</strong></div></div>
+                <div class="tip-item"><span class="tip-icon">4️⃣</span><div><strong>息を吐ききれるように「呼吸回数の上げすぎ」に自動でストップをかける</strong></div></div>
               </div>
+              <p class="chapter-p" style="color: #a7f3d0; font-weight: 700; font-size: 0.95rem; margin-top: 4px;">
+                この4つがあることで、経験の浅いスタッフでも「なぜこの設定にするのか」「どこまでが安全な限界なのか」をひと目で安心してチーム全体で共有できるようになります。
+              </p>
             </div>
           </div>
         </div>
@@ -928,8 +998,5 @@
       </div>
     </div>
   </div>
-
-
-  <script src="app.js?v=20260920_12"></script>
 </body>
 </html>
