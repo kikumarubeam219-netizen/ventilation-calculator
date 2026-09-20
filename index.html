@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&family=Noto+Sans+JP:wght@400;500;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=20260920_9" />
+  <link rel="stylesheet" href="style.css?v=20260920_10" />
 </head>
 <body>
   <!-- トースト通知 -->
@@ -32,7 +32,7 @@
             <span class="btn-act-text">読込</span>
           </button>
           <input type="file" id="fileInputData" accept=".txt,.json" style="display: none;" />
-          <button type="button" class="btn-manual-trigger" id="btnOpenManual" aria-label="説明書と解説書を開く">
+          <button type="button" class="btn-manual-trigger" id="btnOpenManual" onclick="window.openManualModal && window.openManualModal()" aria-label="説明書と解説書を開く">
             <span class="btn-manual-icon">📖</span>
             <span class="btn-manual-text">使い方・解説書</span>
           </button>
@@ -583,7 +583,7 @@
 
   <!-- 取扱説明書 ＆ 初心者向け呼吸療法解説書 モーダル -->
   <div id="manualModal" class="manual-modal hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-    <div class="manual-modal-overlay" id="manualOverlay"></div>
+    <div class="manual-modal-overlay" id="manualOverlay" onclick="window.closeManualModal && window.closeManualModal()"></div>
     <div class="manual-modal-card">
       <!-- モーダルヘッダー -->
       <div class="manual-modal-header">
@@ -591,7 +591,7 @@
           <div class="manual-modal-badge">MANUAL & CLINICAL GUIDE</div>
           <h2 id="modalTitle" class="manual-modal-title">📖 アプリ取扱説明書 ＆ 呼吸療法解説書</h2>
         </div>
-        <button type="button" class="btn-modal-close" id="btnCloseManual" aria-label="閉じる">✕</button>
+        <button type="button" class="btn-modal-close" id="btnCloseManual" onclick="window.closeManualModal && window.closeManualModal()" aria-label="閉じる">✕</button>
       </div>
 
       <!-- モーダル内タブ切り替え -->
@@ -830,12 +830,12 @@
       <!-- モーダルフッター -->
       <div class="manual-modal-footer">
         <span class="manual-footer-note">※ 本解説書を開閉しても、メイン画面の計算・入力状態はすべて保持されます。</span>
-        <button type="button" class="btn-modal-primary-close" id="btnBottomCloseManual">閉じる</button>
+        <button type="button" class="btn-modal-primary-close" id="btnBottomCloseManual" onclick="window.closeManualModal && window.closeManualModal()">閉じる</button>
       </div>
     </div>
   </div>
 
 
-  <script src="app.js?v=20260920_9"></script>
+  <script src="app.js?v=20260920_10"></script>
 </body>
 </html>

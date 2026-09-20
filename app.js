@@ -1282,6 +1282,25 @@
   advSetTiSlider.addEventListener("input", (e) => handleAdvTiChange(parseFloat(e.target.value)));
 
   // 取扱説明書 ＆ 初心者向け呼吸療法解説書 モーダル制御
+  function openManualModal() {
+    var modal = document.getElementById("manualModal");
+    if (modal) {
+      modal.classList.remove("hidden");
+      document.body.style.overflow = "hidden";
+    }
+  }
+
+  function closeManualModal() {
+    var modal = document.getElementById("manualModal");
+    if (modal) {
+      modal.classList.add("hidden");
+      document.body.style.overflow = "";
+    }
+  }
+
+  window.openManualModal = openManualModal;
+  window.closeManualModal = closeManualModal;
+
   function initManualModal() {
     function getEls() {
       return {
@@ -1297,21 +1316,9 @@
       };
     }
 
-    function openModal() {
-      const els = getEls();
-      if (els.modal) {
-        els.modal.classList.remove("hidden");
-        document.body.style.overflow = "hidden";
-      }
-    }
+    var openModal = openManualModal;
 
-    function closeModal() {
-      const els = getEls();
-      if (els.modal) {
-        els.modal.classList.add("hidden");
-        document.body.style.overflow = "";
-      }
-    }
+    var closeModal = closeManualModal;
 
     const els = getEls();
     if (els.btnOpen) els.btnOpen.addEventListener("click", openModal);
@@ -1685,6 +1692,7 @@
     }
   }
 
+  initManualModal();
   initExportImport();
   updateBasic();
   recomputeRecommendation(true);
