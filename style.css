@@ -2245,3 +2245,362 @@ body {
     font-size: 0.72rem;
   }
 }
+
+
+/* ==========================================================================
+   非同調（PVA）解説書 & ヘッダーダイレクトボタン スタイル
+   ========================================================================== */
+.btn-pva-direct {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.22), rgba(245, 158, 11, 0.22));
+  border: 1px solid rgba(245, 158, 11, 0.6);
+  color: #fef08a;
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
+.btn-pva-direct:hover {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.38), rgba(245, 158, 11, 0.38));
+  border-color: #f59e0b;
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.35);
+  transform: translateY(-1px);
+}
+.btn-pva-direct:active {
+  transform: translateY(0);
+}
+
+/* モーダル内タブナビゲーションのレスポンシブ化 */
+.manual-nav-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+}
+.manual-tab-btn {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* PVA ヒーロー概要ボックス */
+.pva-hero-box {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.95));
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+.pva-hero-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.15);
+  padding: 3px 10px;
+  border-radius: 9999px;
+  margin-bottom: 8px;
+}
+.pva-hero-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #f8fafc;
+  margin: 0 0 10px 0;
+}
+.pva-hero-desc {
+  font-size: 0.92rem;
+  line-height: 1.65;
+  color: #cbd5e1;
+  margin-bottom: 16px;
+}
+.pva-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+}
+.pva-stat-card {
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+}
+.pva-stat-val {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #fbbf24;
+}
+.pva-stat-lbl {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  margin-top: 4px;
+}
+
+/* 非同調カード */
+.pva-card {
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 18px;
+  margin-bottom: 24px;
+  transition: border-color 0.2s;
+}
+.pva-card:hover {
+  border-color: rgba(245, 158, 11, 0.4);
+}
+.pva-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.pva-card-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.pva-card-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #f8fafc;
+  margin: 0;
+}
+
+/* バッジ */
+.pva-type-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+.badge-trigger { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); }
+.badge-flow { background: rgba(249, 115, 22, 0.2); color: #fdba74; border: 1px solid rgba(249, 115, 22, 0.4); }
+.badge-cycle { background: rgba(236, 72, 153, 0.2); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.4); }
+
+.pva-freq-badge { font-size: 0.72rem; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: rgba(245, 158, 11, 0.2); color: #fde68a; }
+.pva-danger-badge { font-size: 0.72rem; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: rgba(220, 38, 38, 0.25); color: #f87171; border: 1px solid #ef4444; }
+.pva-warn-badge { font-size: 0.72rem; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: rgba(168, 85, 247, 0.2); color: #d8b4fe; }
+.pva-info-badge { font-size: 0.72rem; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: rgba(56, 189, 248, 0.2); color: #7dd3fc; }
+
+.pva-concept-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.pva-concept-item {
+  display: flex;
+  gap: 10px;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: #cbd5e1;
+}
+.pva-dot { font-size: 0.8rem; line-height: 1.8; }
+.dot-red { color: #ef4444; }
+.dot-amber { color: #f59e0b; }
+.dot-purple { color: #a855f7; }
+.dot-cyan { color: #38bdf8; }
+.dot-orange { color: #f97316; }
+.dot-pink { color: #ec4899; }
+
+.pva-mini-list {
+  margin: 6px 0 0 16px;
+  padding: 0;
+}
+.pva-mini-list li {
+  margin-bottom: 4px;
+}
+
+/* 波形ボックス & SVG */
+.pva-waveform-box {
+  background: #0b1120;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 12px;
+  margin: 16px 0;
+}
+.pva-waveform-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #93c5fd;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.pva-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 6px;
+}
+
+/* 対処アクションボックス */
+.pva-action-box {
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 8px;
+  padding: 14px;
+  margin-top: 14px;
+}
+.pva-action-title {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #34d399;
+  margin-bottom: 10px;
+}
+.pva-step-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+.pva-step-card {
+  background: rgba(30, 41, 59, 0.6);
+  border-radius: 6px;
+  padding: 10px;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: #cbd5e1;
+}
+.pva-step-num {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #10b981;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.pva-step-card strong {
+  display: block;
+  color: #f1f5f9;
+  margin-bottom: 4px;
+}
+.pva-bullet-list {
+  margin: 0 0 0 16px;
+  padding: 0;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: #cbd5e1;
+}
+.pva-bullet-list li {
+  margin-bottom: 6px;
+}
+
+/* 鎮静パラドックス */
+.pva-paradox-box {
+  background: linear-gradient(135deg, rgba(88, 28, 135, 0.25), rgba(15, 23, 42, 0.9));
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  border-radius: 12px;
+  padding: 18px;
+}
+.pva-paradox-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #f472b6;
+  margin: 0 0 10px 0;
+}
+.pva-paradox-desc {
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: #e2e8f0;
+  margin-bottom: 16px;
+}
+.pva-vicious-cycle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 16px 0;
+  flex-wrap: wrap;
+}
+.cycle-step {
+  flex: 1;
+  min-width: 130px;
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 10px;
+  text-align: center;
+}
+.c-step-badge {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  line-height: 20px;
+  border-radius: 50%;
+  background: #64748b;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+.cycle-step.step-danger { border-color: rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.12); }
+.cycle-step.step-danger .c-step-badge { background: #ef4444; }
+.cycle-step.step-critical { border-color: #ef4444; background: rgba(220, 38, 38, 0.25); }
+.cycle-step.step-critical .c-step-badge { background: #dc2626; }
+.c-step-txt {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  line-height: 1.4;
+}
+.cycle-arrow {
+  color: #94a3b8;
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+.pva-paradox-advice {
+  background: rgba(15, 23, 42, 0.7);
+  border-radius: 8px;
+  padding: 14px;
+  margin-top: 14px;
+}
+.advice-head {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fbbf24;
+  margin-bottom: 8px;
+}
+.advice-list {
+  margin: 0 0 0 18px;
+  padding: 0;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: #cbd5e1;
+}
+.advice-list li {
+  margin-bottom: 6px;
+}
+
+/* クイックサマリーテーブル */
+.pva-table-wrap {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: 14px;
+}
+.pva-summary-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  text-align: left;
+}
+.pva-summary-table th {
+  background: #1e293b;
+  color: #94a3b8;
+  padding: 10px 12px;
+  font-weight: 700;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  white-space: nowrap;
+}
+.pva-summary-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: #cbd5e1;
+  vertical-align: top;
+}
+.pva-summary-table tr:nth-child(even) td {
+  background: rgba(15, 23, 42, 0.35);
+}

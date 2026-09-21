@@ -1494,6 +1494,16 @@
   window.openManualModal = openManualModal;
   window.closeManualModal = closeManualModal;
 
+  function openPvaManualModal() {
+    openManualModal();
+    var btnPva = document.getElementById("btnTabManualPva");
+    if (btnPva) {
+      btnPva.click();
+    }
+  }
+  window.openPvaManualModal = openPvaManualModal;
+
+
   function initManualModal() {
     function getEls() {
       return {
@@ -1529,21 +1539,39 @@
       }
     });
 
-    // タブ切り替え
-    if (els.btnTabApp && els.btnTabEdu && els.contentApp && els.contentEdu) {
-      els.btnTabApp.addEventListener("click", () => {
-        els.btnTabApp.classList.add("active");
-        els.btnTabEdu.classList.remove("active");
-        els.contentApp.style.display = "flex";
-        els.contentEdu.style.display = "none";
-      });
+    // タブ切り替え (3タブ排他制御: App / Edu / Pva)
+    const btnTabPva = document.getElementById("btnTabManualPva");
+    const contentPva = document.getElementById("manualTabPva");
 
-      els.btnTabEdu.addEventListener("click", () => {
-        els.btnTabEdu.classList.add("active");
-        els.btnTabApp.classList.remove("active");
-        els.contentApp.style.display = "none";
-        els.contentEdu.style.display = "flex";
+    function switchManualTab(activeTab) {
+      const tabs = [
+        { btn: els.btnTabApp, content: els.contentApp, display: "flex" },
+        { btn: els.btnTabEdu, content: els.contentEdu, display: "flex" },
+        { btn: btnTabPva, content: contentPva, display: "block" }
+      ];
+
+      tabs.forEach(t => {
+        if (!t.btn || !t.content) return;
+        if (t.btn === activeTab) {
+          t.btn.classList.add("active");
+          t.content.style.display = t.display;
+          t.content.classList.add("active");
+        } else {
+          t.btn.classList.remove("active");
+          t.content.style.display = "none";
+          t.content.classList.remove("active");
+        }
       });
+    }
+
+    if (els.btnTabApp) {
+      els.btnTabApp.addEventListener("click", () => switchManualTab(els.btnTabApp));
+    }
+    if (els.btnTabEdu) {
+      els.btnTabEdu.addEventListener("click", () => switchManualTab(els.btnTabEdu));
+    }
+    if (btnTabPva) {
+      btnTabPva.addEventListener("click", () => switchManualTab(btnTabPva));
     }
   }
 
