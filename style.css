@@ -1289,7 +1289,8 @@ body {
   position: relative;
   z-index: 10;
   width: 100%;
-  max-width: 880px;
+  max-width: 900px;
+  height: 90vh;
   max-height: 90vh;
   background: #0f172a;
   border: 1px solid rgba(255, 255, 255, 0.14);
@@ -1298,6 +1299,7 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-width: 0;
   animation: modalFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -1417,7 +1419,8 @@ body {
 
 /* モーダル本文エリア */
 .manual-modal-body {
-  flex: 1;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
   padding: 24px;
   display: flex;
@@ -1425,6 +1428,7 @@ body {
   gap: 24px;
   scrollbar-width: thin;
   scrollbar-color: rgba(148, 163, 184, 0.3) transparent;
+  -webkit-overflow-scrolling: touch;
 }
 
 .manual-modal-body::-webkit-scrollbar {
@@ -2603,4 +2607,38 @@ body {
 }
 .pva-summary-table tr:nth-child(even) td {
   background: rgba(15, 23, 42, 0.35);
+}
+
+/* モーダルレスポンシブ・スクロール確実化 */
+@media (max-width: 640px) {
+  .manual-modal {
+    padding: 8px !important;
+    align-items: stretch !important;
+  }
+  .manual-modal-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 95vh !important;
+    max-height: 95vh !important;
+    min-width: 0 !important;
+    border-radius: 12px !important;
+  }
+  .manual-modal-header {
+    padding: 12px 14px !important;
+  }
+  .manual-modal-title {
+    font-size: 1.0rem !important;
+  }
+  .manual-nav-tabs {
+    padding: 8px 12px !important;
+  }
+  .manual-tab-btn {
+    padding: 8px 12px !important;
+    font-size: 0.85rem !important;
+  }
+  .manual-modal-body {
+    padding: 14px 10px !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+  }
 }
