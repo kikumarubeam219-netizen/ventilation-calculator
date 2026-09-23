@@ -1499,6 +1499,13 @@
     var btnPva = document.getElementById("btnTabManualPva");
     if (btnPva) {
       btnPva.click();
+      if (btnPva.scrollIntoView) {
+        btnPva.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+      }
+    }
+    var modalBody = document.querySelector(".manual-modal-body");
+    if (modalBody) {
+      modalBody.scrollTop = 0;
     }
   }
   window.openPvaManualModal = openPvaManualModal;

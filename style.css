@@ -2642,3 +2642,118 @@ body {
     min-height: 0 !important;
   }
 }
+
+
+/* ==========================================================================
+   モーダルヘッダー＆タブ・モバイル完全対応（上下潰れ・横切れ解消）
+   ========================================================================== */
+.m-tab-label-short {
+  display: none;
+}
+.m-tab-label-full {
+  display: inline;
+}
+
+.manual-modal-header {
+  flex-shrink: 0 !important;
+}
+.manual-nav-tabs {
+  flex-shrink: 0 !important;
+}
+.manual-modal-footer {
+  flex-shrink: 0 !important;
+}
+
+@media (max-width: 680px) {
+  .m-tab-label-short {
+    display: inline !important;
+  }
+  .m-tab-label-full {
+    display: none !important;
+  }
+
+  .manual-modal {
+    padding: env(safe-area-inset-top, 8px) 6px env(safe-area-inset-bottom, 8px) 6px !important;
+    align-items: stretch !important;
+  }
+
+  .manual-modal-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: calc(100dvh - 16px) !important;
+    max-height: calc(100dvh - 16px) !important;
+    border-radius: 14px !important;
+  }
+
+  .manual-modal-header {
+    padding: 10px 12px !important;
+    min-height: 48px !important;
+    gap: 8px !important;
+  }
+
+  .manual-header-title-wrap {
+    gap: 2px !important;
+  }
+
+  .manual-modal-badge {
+    font-size: 0.65rem !important;
+    padding: 2px 6px !important;
+  }
+
+  .manual-modal-title {
+    font-size: 0.92rem !important;
+    line-height: 1.25 !important;
+  }
+
+  .btn-modal-close {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 1.1rem !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* 3タブを画面幅いっぱいに均等3分割配置（スクロール不要で全タブ常時選択可能） */
+  .manual-nav-tabs {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 5px !important;
+    padding: 6px 8px !important;
+    overflow-x: visible !important;
+  }
+
+  .manual-tab-btn {
+    width: 100% !important;
+    min-height: 42px !important;
+    padding: 6px 2px !important;
+    font-size: 0.78rem !important;
+    gap: 4px !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    text-align: center !important;
+    border-radius: 8px !important;
+    white-space: nowrap !important;
+  }
+
+  .manual-tab-btn .m-tab-icon {
+    font-size: 1.05rem !important;
+    line-height: 1 !important;
+  }
+
+  .manual-tab-btn .m-tab-label-short {
+    font-size: 0.75rem !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.02em !important;
+    line-height: 1.1 !important;
+  }
+
+  .manual-modal-body {
+    padding: 12px 10px !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+  }
+
+  .manual-modal-footer {
+    padding: 8px 12px !important;
+  }
+}
