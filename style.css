@@ -3673,3 +3673,121 @@ body {
     gap: 0.45rem;
   }
 }
+
+/* ==========================================================================
+   高度臨床モード強化 ＆ 電子カルテ転記ユーティリティ
+   1. 目標達成時の推定 pH ＆ アシドーシス警告バッジ (pH < 7.20)
+   2. 加温加湿器 (HH) / 人工鼻 (HME: 器械死腔+50mL) 切り替えトグル ＆ 臨床ヒント
+   3. ヘッダー「📋 カルテ用コピー」ボタン
+   ========================================================================== */
+
+/* ヘッダー「📋 カルテ用コピー」ボタン */
+.btn-copy-emr {
+  background: linear-gradient(135deg, rgba(45, 212, 191, 0.16), rgba(56, 189, 248, 0.16));
+  border: 1px solid rgba(45, 212, 191, 0.5);
+  color: var(--color-teal);
+  box-shadow: 0 2px 10px rgba(45, 212, 191, 0.14);
+}
+
+.btn-copy-emr:hover {
+  background: linear-gradient(135deg, rgba(45, 212, 191, 0.28), rgba(56, 189, 248, 0.28));
+  border-color: var(--color-teal);
+  color: #ffffff;
+  box-shadow: 0 0 14px rgba(45, 212, 191, 0.35);
+  transform: translateY(-1px);
+}
+
+/* 加温加湿器 (HH) / 人工鼻 (HME: +50mL) トグルバー */
+.humid-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.55rem;
+  margin-bottom: 0.45rem;
+  padding: 0.4rem 0.65rem;
+  background: rgba(9, 13, 22, 0.68);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-sm);
+}
+
+.humid-label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.humid-toggle-group {
+  display: inline-flex;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: 7px;
+  padding: 2px;
+  gap: 3px;
+  flex-wrap: wrap;
+}
+
+.humid-btn {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.28rem 0.6rem;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.humid-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.humid-btn.active {
+  background: var(--color-sky);
+  color: #090d16;
+  font-weight: 800;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
+}
+
+#advBtnHumidHme.active {
+  background: var(--color-amber);
+  color: #090d16;
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.45);
+}
+
+/* 推定pHのサブ計算式ラベル */
+.m-sub-formula {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  margin-left: 0.15rem;
+}
+
+/* HME器械死腔・抜去時CO2低下の臨床ヒントボックス */
+.abg-hme-hint-box {
+  width: 100%;
+  font-size: 0.73rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+  background: rgba(56, 189, 248, 0.07);
+  border: 1px dashed rgba(56, 189, 248, 0.32);
+  border-radius: 6px;
+  padding: 0.45rem 0.65rem;
+  margin-top: 0.15rem;
+}
+
+.abg-hme-hint-box.hme-active {
+  color: #fef3c7;
+  background: rgba(251, 191, 36, 0.11);
+  border: 1px solid rgba(251, 191, 36, 0.48);
+  box-shadow: 0 0 12px rgba(251, 191, 36, 0.12);
+}
+
+.abg-hme-hint-box.hme-active strong {
+  color: var(--color-amber);
+}

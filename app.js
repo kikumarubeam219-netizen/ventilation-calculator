@@ -978,6 +978,7 @@
     paco2: 48,
     ph: 7.32,
     targetPaco2: 40,
+    humidifier: "hh", // "hh" (加温加湿器) | "hme" (人工鼻: 器械死腔+50mL)
 
     // 気道内圧パラメータ
     peep: 8,
@@ -1035,6 +1036,11 @@
   const advVdVtBadge = document.getElementById("advVdVtBadge");
   const advAbgTargetMvDisplay = document.getElementById("advAbgTargetMvDisplay");
   const btnApplyAbgMv = document.getElementById("btnApplyAbgMv");
+  const advBtnHumidHh = document.getElementById("advBtnHumidHh");
+  const advBtnHumidHme = document.getElementById("advBtnHumidHme");
+  const advEstPhDisplay = document.getElementById("advEstPhDisplay");
+  const advEstPhBadge = document.getElementById("advEstPhBadge");
+  const advHmeHintBox = document.getElementById("advHmeHintBox");
 
   const advBtnResetToRec = document.getElementById("advBtnResetToRec");
 
@@ -1131,6 +1137,25 @@
     renderAdvView();
   }
 
+  // 加温加湿器 (HH) / 人工鼻 (HME: +50mL) 切り替え
+  if (advBtnHumidHh) {
+    advBtnHumidHh.addEventListener("click", () => {
+      advState.humidifier = "hh";
+      advBtnHumidHh.classList.add("active");
+      if (advBtnHumidHme) advBtnHumidHme.classList.remove("active");
+      recomputeAdvRecommendation(false);
+    });
+  }
+
+  if (advBtnHumidHme) {
+    advBtnHumidHme.addEventListener("click", () => {
+      advState.humidifier = "hme";
+      advBtnHumidHme.classList.add("active");
+      if (advBtnHumidHh) advBtnHumidHh.classList.remove("active");
+      recomputeAdvRecommendation(false);
+    });
+  }
+
   // ABG目標MV反映ボタン
   btnApplyAbgMv.addEventListener("click", () => {
     const abgTargetMv = parseFloat(advAbgTargetMvDisplay.textContent);
@@ -1181,7 +1206,8 @@
       advState.setVt = newVt;
     } else {
       // ロックなし（または MV 自身を操作時）：Otis 式で最適 RR と Vt を連動計算
-      const vdMl = Math.round(2.2 * advState.pbw);
+      const hmeDeadSpaceMl = advState.humidifier === "hme" ? 50 : 0;
+      const vdMl = Math.round(2.2 * advState.pbw) + hmeDeadSpaceMl;
       const vdL = vdMl / 1000;
       const a = 0.33;
 
@@ -1299,7 +1325,8 @@
 
   function recomputeAdvRecommendation(applyToSet = false) {
     advState.pbw = calcPBW(advState.gender, advState.height);
-    const vdMl = Math.round(2.2 * advState.pbw);
+    const hmeDeadSpaceMl = advState.humidifier === "hme" ? 50 : 0;
+    const vdMl = Math.round(2.2 * advState.pbw) + hmeDeadSpaceMl;
     const vdL = vdMl / 1000;
     const baseMvL = advState.pbw * 0.1;
 
@@ -1372,30 +1399,79 @@
       advRcExpBadge.style.color = "#2dd4bf";
     }
 
-    // 1. ABG較差 & 死腔率推計
+    // 1. 目標達成時の推定pH (急性変化の概算式: ΔPaCO2 10mmHgにつき pH ∓0.08)
+    const deltaPaco2 = advState.targetPaco2 - advState.paco2;
+    const estPh = advState.ph - (deltaPaco2 * 0.008);
+    if (advEstPhDisplay) {
+      advEstPhDisplay.textContent = estPh.toFixed(2);
+    }
+    if (advEstPhBadge) {
+      if (estPh < 7.20) {
+        advEstPhBadge.textContent = "⚠️ アシドーシス警告 (pH < 7.20)";
+        advEstPhBadge.className = "vdvt-badge status-danger";
+        if (advEstPhDisplay) advEstPhDisplay.className = "text-rose";
+      } else if (estPh < 7.35) {
+        advEstPhBadge.textContent = "許容性アシデミア (7.20〜7.34)";
+        advEstPhBadge.className = "vdvt-badge status-warn";
+        if (advEstPhDisplay) advEstPhDisplay.className = "text-amber";
+      } else if (estPh <= 7.45) {
+        advEstPhBadge.textContent = "正常範囲 (7.35〜7.45)";
+        advEstPhBadge.className = "vdvt-badge status-good";
+        if (advEstPhDisplay) advEstPhDisplay.className = "text-teal";
+      } else {
+        advEstPhBadge.textContent = "アルカレミア注意 (> 7.45)";
+        advEstPhBadge.className = "vdvt-badge status-warn";
+        if (advEstPhDisplay) advEstPhDisplay.className = "text-sky";
+      }
+    }
+
+    // 2. ABG較差 & 死腔率推計（加温加湿器HH / 人工鼻HME+50mL連動）
     const paEtDiff = Math.max(0, advState.paco2 - advState.etco2);
     advPaEtDiffDisplay.textContent = paEtDiff;
 
-    let vdVtRatio = (advState.paco2 - advState.etco2) / advState.paco2;
-    if (vdVtRatio < 0.15) vdVtRatio = 0.15;
-    if (vdVtRatio > 0.85) vdVtRatio = 0.85;
+    let baseVdVtRatio = (advState.paco2 - advState.etco2) / advState.paco2;
+    if (baseVdVtRatio < 0.15) baseVdVtRatio = 0.15;
+    if (baseVdVtRatio > 0.85) baseVdVtRatio = 0.85;
+
+    const isHme = advState.humidifier === "hme";
+    const hmeAddRatio = isHme && advState.setVt > 0 ? (50 / advState.setVt) : 0;
+    const vdVtRatio = Math.min(0.88, baseVdVtRatio + hmeAddRatio);
     const vdVtPct = Math.round(vdVtRatio * 100);
     advVdVtDisplay.textContent = vdVtPct;
 
     if (vdVtPct <= 35) {
-      advVdVtBadge.textContent = "正常 (≦35%)";
+      advVdVtBadge.textContent = isHme ? "正常 (+HME 50mL込)" : "正常 (≦35%)";
       advVdVtBadge.className = "vdvt-badge status-good";
     } else if (vdVtPct <= 55) {
-      advVdVtBadge.textContent = "中等度死腔 (35〜55%)";
+      advVdVtBadge.textContent = isHme ? "中等度死腔 (+HME 50mL込)" : "中等度死腔 (35〜55%)";
       advVdVtBadge.className = "vdvt-badge status-warn";
     } else {
-      advVdVtBadge.textContent = "重度死腔増大 (>55%)";
+      advVdVtBadge.textContent = isHme ? "重度死腔増大 (+HME 50mL込)" : "重度死腔増大 (>55%)";
       advVdVtBadge.className = "vdvt-badge status-danger";
     }
 
-    // ABG必要換気量
-    const abgTargetMv = Math.round((advState.setMv * (advState.paco2 / advState.targetPaco2)) * 10) / 10;
+    // ABG必要換気量 & HME器械死腔(+50mL)の臨床ヒント
+    const baseAbgMv = advState.setMv * (advState.paco2 / advState.targetPaco2);
+    const hmeExtraMvL = isHme ? ((50 * advState.setRr) / 1000) : 0;
+    const abgTargetMv = Math.round((baseAbgMv + hmeExtraMvL) * 10) / 10;
     advAbgTargetMvDisplay.textContent = abgTargetMv.toFixed(1);
+
+    if (advHmeHintBox) {
+      if (isHme) {
+        const vAlv = Math.max(80, advState.setVt * (1 - vdVtRatio));
+        const co2DropMmhg = Math.max(1, Math.round(advState.paco2 * (1 - (vAlv / (vAlv + 50)))));
+        advHmeHintBox.className = "abg-hme-hint-box hme-active";
+        advHmeHintBox.innerHTML =
+          "👃 <strong>人工鼻 (HME: 器械死腔+50mL) 選択中:</strong> 器械死腔により必要分時換気量が <strong>+" +
+          hmeExtraMvL.toFixed(1) + " L/min</strong> (50mL×" + advState.setRr + "回) 増加しています。" +
+          "<br>💡 <strong>臨床ヒント:</strong> HMEを抜去して加温加湿器 (HH) へ変更すると、換気設定を変えずに PaCO2 が約 <strong>-" +
+          co2DropMmhg + " mmHg</strong> 低下（必要MV <strong>-" + hmeExtraMvL.toFixed(1) + " L/min</strong> 節減）と推計されます。";
+      } else {
+        advHmeHintBox.className = "abg-hme-hint-box";
+        advHmeHintBox.innerHTML =
+          "💧 <strong>加温加湿器 (HH) 選択中:</strong> 人工鼻 (HME) による追加器械死腔 (+50mL) なし（最小死腔構成）";
+      }
+    }
 
     // 4連コントロールカード
     advPillRecMv.textContent = "推奨 " + advState.recMv.toFixed(1);
@@ -2033,6 +2109,7 @@
           paco2: advState.paco2,
           ph: advState.ph,
           targetPaco2: advState.targetPaco2,
+          humidifier: advState.humidifier,
           peep: advState.peep,
           setMv: advState.setMv,
           setVt: advState.setVt,
@@ -2224,6 +2301,11 @@
           if (ap.paco2 !== undefined) setParamValue("advPaco2", ap.paco2);
           if (ap.ph !== undefined) setParamValue("advPh", ap.ph);
           if (ap.targetPaco2 !== undefined) setParamValue("advTargetPaco2", ap.targetPaco2);
+          if (ap.humidifier === "hme" && advBtnHumidHme) {
+            advBtnHumidHme.click();
+          } else if (ap.humidifier === "hh" && advBtnHumidHh) {
+            advBtnHumidHh.click();
+          }
           if (ap.peep !== undefined) setParamValue("advPeep", ap.peep);
           if (ap.setMv !== undefined) setParamValue("advSetMv", ap.setMv);
           if (ap.setVt !== undefined) setParamValue("advSetVt", ap.setVt);
@@ -2267,11 +2349,78 @@
     reader.readAsText(file);
   }
 
+  function buildEmrCopyText() {
+    var mode = getActiveMode();
+    var st = mode === "adv" ? advState : optState;
+    var genderStr = st.gender === "male" ? "男性" : "女性";
+    var pbw = calcPBW(st.gender, st.height);
+    var tvMin = Math.round(pbw * 6);
+    var tvMax = Math.round(pbw * 8);
+
+    var rcExpSec = (st.r * st.c) / 1000;
+    var tTotal = 60 / st.setRr;
+    var te = Math.max(0.1, tTotal - st.setTi);
+    var ieRatio = (te / st.setTi).toFixed(1);
+    var vtPerKg = (st.setVt / pbw).toFixed(1);
+
+    var dp = Math.round((st.setVt / st.c) * 10) / 10;
+    var peep = advState.peep;
+    var pplat = Math.round((peep + dp) * 10) / 10;
+    var ppeak;
+    if (advState.flowWave === "square") {
+      var flowLps = (st.setVt / 1000) / st.setTi;
+      ppeak = Math.round((pplat + flowLps * st.r) * 10) / 10;
+    } else {
+      ppeak = Math.round((pplat + 0.8) * 10) / 10;
+    }
+
+    var estPh = advState.ph - ((advState.targetPaco2 - advState.paco2) * 0.008);
+    var humidStr = advState.humidifier === "hme" ? "人工鼻(HME +50mL)" : "加温加湿器(HH)";
+
+    var lines = [];
+    lines.push("【人工呼吸器設定・呼吸力学評価】");
+    lines.push("■患者基本: " + genderStr + " / " + st.height + "cm / PBW " + pbw.toFixed(1) + "kg (推奨TV 6-8mL/kg: " + tvMin + "-" + tvMax + "mL)");
+    lines.push("■呼吸力学: R " + st.r + " cmH2O/(L/s), C " + st.c + " mL/cmH2O, RCexp " + rcExpSec.toFixed(2) + "s, EtCO2 " + st.etco2 + " mmHg");
+    if (mode === "adv") {
+      lines.push("■血液ガス: 実測PaCO2 " + advState.paco2 + " mmHg, 実測pH " + advState.ph.toFixed(2) + " → 目標PaCO2 " + advState.targetPaco2 + " mmHg (到達推定pH " + estPh.toFixed(2) + ") / 加湿: " + humidStr);
+    }
+    lines.push("■換気設定: MV " + st.setMv.toFixed(1) + " L/min, Vt " + st.setVt + " mL (" + vtPerKg + " mL/kg PBW), RR " + st.setRr + " /min, Ti " + st.setTi.toFixed(2) + "s (Te " + te.toFixed(1) + "s, I:E = 1:" + ieRatio + ")");
+    lines.push("■推定気道内圧: ΔP " + dp.toFixed(1) + " cmH2O, Pplat " + pplat.toFixed(1) + " cmH2O, Ppeak " + ppeak.toFixed(1) + " cmH2O (PEEP " + peep + " cmH2O)");
+    return lines.join("\n");
+  }
+
+  function copyEmrData() {
+    var text = buildEmrCopyText();
+    window.__lastCopiedEmrText = text;
+
+    function fallbackCopy(str) {
+      var ta = document.createElement("textarea");
+      ta.value = str;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "fixed";
+      ta.style.top = "-9999px";
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand("copy");
+      } catch (e) {}
+      document.body.removeChild(ta);
+    }
+
+    fallbackCopy(text);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).catch(function() {});
+    }
+    showToast("📋 電子カルテ用テキストをクリップボードにコピーしました");
+  }
+
   function initExportImport() {
+    var btnCopyEmr = document.getElementById("btnCopyEmr");
     var btnExport = document.getElementById("btnExportData");
     var btnImport = document.getElementById("btnImportData");
     var fileInput = document.getElementById("fileInputData");
 
+    if (btnCopyEmr) btnCopyEmr.addEventListener("click", copyEmrData);
     if (btnExport) btnExport.addEventListener("click", exportVentilationData);
     if (btnImport && fileInput) {
       btnImport.addEventListener("click", function() { fileInput.click(); });

@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&family=Noto+Sans+JP:wght@400;500;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=20261030_02" />
+  <link rel="stylesheet" href="style.css?v=20261030_03" />
 </head>
 <body>
   <!-- トースト通知 -->
@@ -23,6 +23,10 @@
           <p class="header-subtitle">予測体重(PBW) & 呼吸力学 & 血液ガス(ABG)統合シミュレーター</p>
         </div>
         <div class="header-actions">
+          <button type="button" class="btn-action-trigger btn-copy-emr" id="btnCopyEmr" aria-label="電子カルテ転記用テキストをクリップボードにコピー">
+            <span class="btn-act-icon">📋</span>
+            <span class="btn-act-text">カルテ用コピー</span>
+          </button>
           <button type="button" class="btn-action-trigger btn-export" id="btnExportData" aria-label="設定をテキストファイルに保存">
             <span class="btn-act-icon">💾</span>
             <span class="btn-act-text">保存 (txt)</span>
@@ -732,11 +736,29 @@
                     </div>
                   </div>
                 </div>
+                <!-- 加湿デバイス（器械死腔）切り替えトグル -->
+                <div class="humid-toggle-row">
+                  <span class="humid-label">加湿・器械死腔設定:</span>
+                  <div class="humid-toggle-group" role="group" aria-label="加温加湿器と人工鼻の切り替え">
+                    <button type="button" class="humid-btn active" id="advBtnHumidHh">💧 加温加湿器 (HH)</button>
+                    <button type="button" class="humid-btn" id="advBtnHumidHme">👃 人工鼻 (HME: 器械死腔+50mL)</button>
+                  </div>
+                </div>
                 <div class="abg-result-banner">
                   <div class="abg-metrics-col">
+                    <div class="metric-row">
+                      <span class="m-label">目標達成時の推定 pH <small class="m-sub-formula">(ΔPaCO2 10につき∓0.08)</small>:</span>
+                      <span class="m-val">
+                        <strong id="advEstPhDisplay" class="text-sky">7.38</strong>
+                        <span class="vdvt-badge status-good" id="advEstPhBadge">正常範囲 (7.35〜7.45)</span>
+                      </span>
+                    </div>
                     <div class="metric-row"><span class="m-label">P(a-ET)CO2較差:</span><span class="m-val text-sky"><strong id="advPaEtDiffDisplay">10</strong> mmHg</span></div>
                     <div class="metric-row"><span class="m-label">推計死腔率 (Vd/Vt):</span><span class="m-val"><strong id="advVdVtDisplay">21</strong>% <span class="vdvt-badge status-good" id="advVdVtBadge">正常</span></span></div>
                     <div class="metric-row highlight-target-row"><span class="m-label">ABG目標必要換気量:</span><span class="m-val-huge text-amber"><strong id="advAbgTargetMvDisplay">7.9</strong> L/min</span></div>
+                  </div>
+                  <div class="abg-hme-hint-box" id="advHmeHintBox">
+                    💧 <strong>加温加湿器 (HH) 選択中:</strong> 人工鼻による追加器械死腔 (+50mL) なし
                   </div>
                   <button type="button" class="btn-apply-abg" id="btnApplyAbgMv">⚡ 目標換気量を設定に反映</button>
                 </div>
@@ -2169,6 +2191,6 @@ ight)$$（※CO2産生量 VCO2 一定の仮定）</span>
       </div>
     </div>
   </div>
-  <script src="app.js?v=20261030_02"></script>
+  <script src="app.js?v=20261030_03"></script>
 </body>
 </html>
