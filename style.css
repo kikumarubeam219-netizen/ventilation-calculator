@@ -53,7 +53,7 @@
 html, body {
   width: 100%;
   max-width: 100vw;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 body {
@@ -64,14 +64,13 @@ body {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding: 1rem 0.75rem 2.5rem 0.75rem;
+  padding: 0.75rem 0.75rem 2.2rem 0.75rem;
   line-height: 1.5;
 }
 
 .app-container {
   width: 100%;
   max-width: 800px;
-  overflow-x: hidden;
 }
 
 /* ===================================
@@ -168,9 +167,9 @@ body {
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  padding: 1.1rem 1.25rem;
+  padding: 1rem 1.15rem;
   box-shadow: var(--shadow-card);
-  overflow: hidden;
+  overflow: visible;
   width: 100%;
 }
 
@@ -2755,5 +2754,611 @@ body {
 
   .manual-modal-footer {
     padding: 8px 12px !important;
+  }
+}
+
+
+/* ==========================================================================
+   スクロール量削減 ＆ 視認性向上レイアウト改修
+   1. 常時追従コンパクト患者基本情報バー (Sticky Header)
+   2. 768px以上 2カラムレイアウト (セクション3 設定群 × セクション4 グラフ・圧評価)
+   3. 高度臨床モード セクション2 (呼吸力学 × ABG連動・死腔推計) 2カラム圧縮
+   ========================================================================== */
+
+.legacy-sec1-hidden {
+  display: none !important;
+}
+
+/* セクション見出しのバッジとタイトルを常に左寄せで隣接配置 */
+.section-header {
+  justify-content: flex-start !important;
+  gap: 0.55rem !important;
+}
+
+.section-header .btn-reset-rec {
+  margin-left: auto;
+}
+
+/* ABG入力ボックス内のスライダー縦伸び防止 */
+.abg-input-box .custom-range {
+  flex: 0 0 8px !important;
+  height: 8px !important;
+  width: 100%;
+  margin: 0.25rem 0;
+}
+
+/* 1. Sticky Patient Bar (常時追従コンパクト患者基本情報バー) */
+.sticky-patient-bar {
+  position: sticky;
+  top: 6px;
+  z-index: 200;
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(56, 189, 248, 0.38);
+  border-radius: var(--radius-md);
+  padding: 0.45rem 0.75rem;
+  margin-bottom: 0.75rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 12px rgba(56, 189, 248, 0.12);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sticky-patient-bar.sticky-bar-adv {
+  border-color: rgba(192, 132, 252, 0.45);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.65), 0 0 14px rgba(192, 132, 252, 0.16);
+}
+
+.sticky-patient-main-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.sticky-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.sticky-sec-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.sticky-step-badge {
+  width: 22px;
+  height: 22px;
+  font-size: 0.72rem;
+}
+
+.sticky-title-text {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--text-main);
+  white-space: nowrap;
+}
+
+/* インライン性別トグル */
+.sticky-gender-group {
+  display: inline-flex;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+  gap: 2px;
+}
+
+.sticky-gender-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.6rem;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  min-height: 30px;
+  white-space: nowrap;
+}
+
+.sticky-gender-btn.active {
+  background: var(--color-sky);
+  color: #090d16;
+  box-shadow: 0 0 8px var(--color-sky-glow);
+}
+
+/* インライン身長ステッパー・直接入力 */
+.sticky-height-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.sticky-lbl {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.sticky-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.btn-step-xs {
+  width: 32px !important;
+  height: 32px !important;
+  font-size: 1.05rem !important;
+  border-radius: 6px !important;
+}
+
+.sticky-input-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  background: rgba(9, 13, 22, 0.85);
+  border: 1.5px solid rgba(255, 255, 255, 0.22);
+  border-radius: 6px;
+  padding: 0 0.35rem;
+  height: 32px;
+}
+
+.sticky-input-wrap:focus-within {
+  border-color: var(--color-sky);
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.45);
+}
+
+.sticky-num-input {
+  width: 44px !important;
+  font-size: 0.98rem !important;
+}
+
+.sticky-unit {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* 右側：PBW & TV基準範囲 ＆ スライダー展開トグル */
+.sticky-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+.sticky-metrics-strip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  background: rgba(9, 13, 22, 0.78);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 0.25rem 0.65rem;
+  min-height: 34px;
+}
+
+.sticky-metric-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  white-space: nowrap;
+}
+
+.smc-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-dim);
+}
+
+.smc-sub {
+  font-size: 0.64rem;
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+.smc-val {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.98rem;
+  font-weight: 800;
+}
+
+.smc-unit {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.sticky-metric-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--border-subtle);
+}
+
+.btn-sticky-drawer-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.3rem 0.6rem;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: var(--color-sky);
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.btn-sticky-drawer-toggle:hover,
+.btn-sticky-drawer-toggle.open {
+  background: rgba(56, 189, 248, 0.24);
+  border-color: var(--color-sky);
+  color: #ffffff;
+}
+
+.drawer-toggle-icon {
+  font-size: 0.8rem;
+  line-height: 1;
+}
+
+/* 展開ドロワー（身長スライダー ＆ クイック選択） */
+.sticky-patient-drawer {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed var(--border-subtle);
+  animation: drawerSlideDown 0.18s ease-out;
+}
+
+.sticky-patient-drawer.hidden {
+  display: none !important;
+}
+
+@keyframes drawerSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.sticky-drawer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.sticky-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1 1 240px;
+}
+
+.sticky-height-presets {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+}
+
+.shp-label {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  font-weight: 600;
+  margin-right: 0.15rem;
+}
+
+.btn-height-preset {
+  padding: 0.2rem 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-family: "JetBrains Mono", monospace;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-height-preset:hover {
+  background: rgba(56, 189, 248, 0.18);
+  color: #ffffff;
+}
+
+.btn-height-preset.active {
+  background: var(--color-sky);
+  color: #090d16;
+  border-color: var(--color-sky);
+}
+
+/* 高度臨床モード セクション2 サブヘッダー */
+.sub-col-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.sub-col-badge {
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: var(--color-sky);
+  background: rgba(56, 189, 248, 0.14);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+}
+
+.sub-col-note {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+}
+
+.adv-sec2-col-left {
+  background: linear-gradient(180deg, rgba(56, 189, 248, 0.05), rgba(15, 23, 42, 0.85));
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 0.85rem;
+}
+
+/* ==========================================================================
+   PC・タブレット表示 (画面幅 768px 以上) 2カラムレイアウト & 縦幅圧縮
+   ========================================================================== */
+@media (min-width: 768px) {
+  .app-container {
+    max-width: 1220px;
+  }
+
+  .app-header {
+    margin-bottom: 0.55rem;
+  }
+
+  .header-top-row {
+    margin-bottom: 0.45rem;
+  }
+
+  .header-main {
+    text-align: left;
+    margin-bottom: 0;
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .header-badge {
+    margin-bottom: 0;
+  }
+
+  .header-title {
+    font-size: 1.35rem;
+  }
+
+  .header-subtitle {
+    margin-top: 0;
+  }
+
+  /* 力学最適化モード セクション2：3パラメータ横並びで縦幅を大幅圧縮 */
+  .opt-param-grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.65rem;
+  }
+
+  .opt-param-grid-3 .param-card {
+    margin-bottom: 0;
+    padding: 0.55rem 0.7rem;
+  }
+
+  /* 要件3：高度臨床モードのセクション2を左右2カラム構成にして縦幅を圧縮 */
+  .adv-sec2-two-col {
+    display: grid;
+    grid-template-columns: 1fr 1.05fr;
+    gap: 0.9rem;
+    align-items: stretch;
+  }
+
+  .adv-sec2-col-left {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 0.7rem 0.8rem;
+  }
+
+  .adv-sec2-col-left .preset-row {
+    margin-bottom: 0.45rem;
+    padding: 0.35rem 0.6rem;
+  }
+
+  .adv-sec2-col-left .btn-preset {
+    min-height: 32px;
+    padding: 0.25rem 0.3rem;
+  }
+
+  .adv-sec2-col-left .param-grid-3 {
+    gap: 0.4rem;
+  }
+
+  .adv-sec2-col-left .param-card {
+    padding: 0.4rem 0.65rem;
+    margin-bottom: 0;
+  }
+
+  .adv-sec2-col-left .param-card .slider-top {
+    margin-bottom: 0.25rem;
+  }
+
+  .adv-sec2-col-left .param-card .btn-step {
+    width: 34px;
+    height: 34px;
+    font-size: 1.1rem;
+  }
+
+  .adv-sec2-col-left .param-card .input-unit-wrap {
+    height: 34px;
+  }
+
+  .adv-sec2-col-left .param-card .num-direct-input {
+    font-size: 1rem;
+    width: 48px;
+  }
+
+  .adv-sec2-col-left .param-card .slider-hint {
+    display: none;
+  }
+
+  .adv-sec2-col-left .rcexp-banner {
+    margin-top: 0.45rem;
+    padding: 0.45rem 0.75rem;
+  }
+
+  .adv-sec2-col-right {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .adv-sec2-col-right .abg-feature-card {
+    margin-top: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 0.75rem 0.85rem;
+  }
+
+  /* 要件2：セクション3（左：設定スライダー群）× セクション4（右：換気特性グラフィック＆圧指標カード）の2カラム構成 */
+  .sim-eval-two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    align-items: start;
+  }
+
+  .sim-eval-two-col > .card-section {
+    margin-bottom: 0 !important;
+    padding-bottom: 0.85rem !important;
+    border-bottom: none !important;
+  }
+
+  .sim-col-left {
+    padding: 0.85rem 0.95rem !important;
+  }
+
+  .sim-col-left .recommend-grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.55rem;
+  }
+
+  .sim-col-left .rec-card {
+    padding: 0.6rem 0.65rem;
+    gap: 0.25rem;
+  }
+
+  .sim-col-left .btn-step-sm {
+    width: 34px;
+    height: 34px;
+    font-size: 1.1rem;
+  }
+
+  .sim-col-left .input-unit-wrap {
+    height: 36px;
+    padding: 0 0.3rem;
+  }
+
+  .sim-col-left .num-direct-input.num-input-large {
+    width: 56px;
+    font-size: 1.1rem;
+  }
+
+  .eval-col-right {
+    background: rgba(15, 23, 42, 0.75);
+    border: 1px solid var(--border-subtle) !important;
+    border-radius: var(--radius-lg);
+    padding: 0.85rem 0.95rem !important;
+    position: sticky;
+    top: 62px;
+  }
+
+  .eval-col-right .safety-banner {
+    margin-top: 0.55rem;
+    padding: 0.55rem 0.8rem;
+  }
+
+  .eval-col-right .airway-pressure-card {
+    margin-top: 0.55rem;
+    padding: 0.6rem 0.75rem;
+  }
+
+  .eval-col-right .peep-control-row {
+    margin-bottom: 0.5rem;
+  }
+
+  .eval-col-right .peep-control-row .btn-step-sm {
+    width: 34px;
+    height: 34px;
+  }
+
+  .eval-col-right .peep-control-row .input-unit-wrap {
+    height: 34px;
+  }
+
+  .eval-col-right .peep-control-row .toggle-btn {
+    min-height: 34px;
+    padding: 0.3rem 0.65rem;
+    font-size: 0.75rem;
+  }
+}
+
+/* スマホ・小画面でのSticky Patient Bar最適化 */
+@media (max-width: 767px) {
+  .sticky-patient-bar {
+    top: 4px;
+    padding: 0.4rem 0.55rem;
+  }
+
+  .sticky-title-text {
+    display: none;
+  }
+
+  .sticky-bar-left {
+    gap: 0.4rem;
+  }
+
+  .sticky-bar-right {
+    width: 100%;
+    justify-content: space-between;
+    gap: 0.4rem;
+  }
+
+  .sticky-metrics-strip {
+    flex: 1;
+    justify-content: space-around;
+    padding: 0.2rem 0.45rem;
+  }
+
+  .drawer-toggle-text {
+    font-size: 0.7rem;
   }
 }

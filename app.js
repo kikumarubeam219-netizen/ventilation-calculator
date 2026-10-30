@@ -44,6 +44,19 @@
   const viewOpt = document.getElementById("viewOpt");
   const viewAdv = document.getElementById("viewAdv");
 
+  // 常時追従コンパクト患者基本情報バー (Sticky Header) 要素
+  const gBtnMale = document.getElementById("gBtnMale");
+  const gBtnFemale = document.getElementById("gBtnFemale");
+  const gHeightInput = document.getElementById("gHeightInput");
+  const gHeightSlider = document.getElementById("gHeightSlider");
+  const gPbwDisplay = document.getElementById("gPbwDisplay");
+  const gTvRangeDisplay = document.getElementById("gTvRangeDisplay");
+  const stickyStepBadge = document.getElementById("stickyStepBadge");
+  const stickyPatientBar = document.getElementById("stickyPatientBar");
+  const btnTogglePatientDrawer = document.getElementById("btnTogglePatientDrawer");
+  const stickyPatientDrawer = document.getElementById("stickyPatientDrawer");
+  const stickyDrawerIcon = document.getElementById("stickyDrawerIcon");
+
   let activeMode = "opt";
 
   tabBasic.addEventListener("click", () => switchTab("basic"));
@@ -59,6 +72,13 @@
     viewBasic.style.display = mode === "basic" ? "block" : "none";
     viewOpt.style.display = mode === "opt" ? "block" : "none";
     viewAdv.style.display = mode === "adv" ? "block" : "none";
+
+    if (stickyStepBadge) {
+      stickyStepBadge.classList.toggle("bg-purple", mode === "adv");
+    }
+    if (stickyPatientBar) {
+      stickyPatientBar.classList.toggle("sticky-bar-adv", mode === "adv");
+    }
 
     // どのタブに切り替えても最新同期状態から全画面を同期描画
     updateBasic();
@@ -83,6 +103,10 @@
     advState.gender = gender;
 
     const isMale = gender === "male";
+    if (gBtnMale && gBtnFemale) {
+      gBtnMale.classList.toggle("active", isMale);
+      gBtnFemale.classList.toggle("active", !isMale);
+    }
     if (bBtnMale && bBtnFemale) {
       bBtnMale.classList.toggle("active", isMale);
       bBtnFemale.classList.toggle("active", !isMale);
@@ -114,6 +138,12 @@
     bState.height = h;
     optState.height = h;
     advState.height = h;
+
+    if (gHeightInput) gHeightInput.value = h;
+    if (gHeightSlider) gHeightSlider.value = h;
+    document.querySelectorAll(".btn-height-preset").forEach((btn) => {
+      btn.classList.toggle("active", parseInt(btn.dataset.height, 10) === h);
+    });
 
     if (bHeightInput) bHeightInput.value = h;
     if (bHeightSlider) bHeightSlider.value = h;
@@ -256,6 +286,29 @@
 
   bBtnFemale.addEventListener("click", () => syncAllGender("female"));
 
+  if (gBtnMale) gBtnMale.addEventListener("click", () => syncAllGender("male"));
+  if (gBtnFemale) gBtnFemale.addEventListener("click", () => syncAllGender("female"));
+
+  if (btnTogglePatientDrawer && stickyPatientDrawer) {
+    btnTogglePatientDrawer.addEventListener("click", () => {
+      const isHidden = stickyPatientDrawer.classList.toggle("hidden");
+      btnTogglePatientDrawer.setAttribute("aria-expanded", (!isHidden).toString());
+      btnTogglePatientDrawer.classList.toggle("open", !isHidden);
+      if (stickyDrawerIcon) {
+        stickyDrawerIcon.textContent = isHidden ? "▾" : "▴";
+      }
+    });
+  }
+
+  document.querySelectorAll(".btn-height-preset").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const hVal = parseInt(btn.dataset.height, 10);
+      if (!isNaN(hVal)) {
+        setParamValue("bHeight", hVal);
+      }
+    });
+  });
+
   function updateBasic() {
     const pbw = calcPBW(bState.gender, bState.height);
     const tvMin = Math.round(pbw * 6);
@@ -266,6 +319,11 @@
 
     const targetMvL = baseMvL * (bState.mvPct / 100);
     const targetMvMl = Math.round(targetMvL * 1000);
+
+    if (gPbwDisplay) gPbwDisplay.textContent = pbw.toFixed(1);
+    if (gTvRangeDisplay) gTvRangeDisplay.textContent = tvMin + "〜" + tvMax;
+    if (gHeightInput) gHeightInput.value = bState.height;
+    if (gHeightSlider) gHeightSlider.value = bState.height;
 
     bPbwDisplay.textContent = pbw.toFixed(1);
     bTvMin.textContent = tvMin;
@@ -1426,6 +1484,7 @@
   }
 
   // 直接入力バインド
+  setupDirectInput(gHeightInput, "bHeight");
   setupDirectInput(bHeightInput, "bHeight");
   setupDirectInput(bMvPctInput, "bMvPct");
   setupDirectInput(aHeightInput, "aHeight");
@@ -1451,6 +1510,7 @@
   setupDirectInput(advPeepInput, "advPeep");
 
   // スライダーバインド (すべて setParamValue を経由して全モード完全連動)
+  if (gHeightSlider) gHeightSlider.addEventListener("input", (e) => setParamValue("bHeight", parseFloat(e.target.value)));
   bHeightSlider.addEventListener("input", (e) => setParamValue("bHeight", parseFloat(e.target.value)));
   bMvPctSlider.addEventListener("input", (e) => setParamValue("bMvPct", parseFloat(e.target.value)));
   aHeightSlider.addEventListener("input", (e) => setParamValue("aHeight", parseFloat(e.target.value)));
