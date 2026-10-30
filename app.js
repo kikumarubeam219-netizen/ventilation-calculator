@@ -86,6 +86,7 @@
     renderOptView();
     syncInputsToAdvState();
     renderAdvView();
+    updateMobileFloatingBar();
   }
 
   // ==========================================
@@ -319,11 +320,17 @@
       const isLocked = !!lockState[target];
       btn.classList.toggle("locked", isLocked);
       btn.setAttribute("aria-pressed", isLocked ? "true" : "false");
-      btn.textContent = isLocked ? "🔒" : "🔓";
-      btn.title = isLocked ? "現在ロック中（クリックで固定解除）" : "クリックでこの項目をロック（固定）";
+      btn.innerHTML = isLocked
+        ? '<span class="lock-icon">🔒</span><span class="lock-txt">固定中</span>'
+        : '<span class="lock-icon">🔓</span><span class="lock-txt">固定</span>';
+      btn.title = isLocked ? "現在ロック中（クリックで固定解除）" : "クリックでこの項目をロック（固定・誤タップ防止）";
       const parentCard = btn.closest(".rec-card");
       if (parentCard) {
         parentCard.classList.toggle("is-locked", isLocked);
+        // ロック時はスライダー・直接入力・＋/−ボタンを無効化し、スマホ縦スクロール時の誤タップ・誤操作を防止
+        parentCard.querySelectorAll("input.custom-range, input.num-direct-input, button.btn-step").forEach((ctrl) => {
+          ctrl.disabled = isLocked;
+        });
       }
     });
   }
@@ -363,14 +370,35 @@
   if (gBtnMale) gBtnMale.addEventListener("click", () => syncAllGender("male"));
   if (gBtnFemale) gBtnFemale.addEventListener("click", () => syncAllGender("female"));
 
+  function togglePatientAccordion() {
+    if (!stickyPatientDrawer || !btnTogglePatientDrawer) return;
+    const isHidden = stickyPatientDrawer.classList.toggle("hidden");
+    const isOpen = !isHidden;
+    btnTogglePatientDrawer.setAttribute("aria-expanded", isOpen.toString());
+    btnTogglePatientDrawer.classList.toggle("open", isOpen);
+    if (stickyPatientBar) {
+      stickyPatientBar.classList.toggle("drawer-open", isOpen);
+    }
+    const stickyDrawerText = document.getElementById("stickyDrawerText");
+    if (stickyDrawerText) {
+      stickyDrawerText.textContent = isOpen ? "閉じる" : "編集";
+    }
+    if (stickyDrawerIcon) {
+      stickyDrawerIcon.textContent = isOpen ? "▲" : "▼";
+    }
+  }
+
   if (btnTogglePatientDrawer && stickyPatientDrawer) {
-    btnTogglePatientDrawer.addEventListener("click", () => {
-      const isHidden = stickyPatientDrawer.classList.toggle("hidden");
-      btnTogglePatientDrawer.setAttribute("aria-expanded", (!isHidden).toString());
-      btnTogglePatientDrawer.classList.toggle("open", !isHidden);
-      if (stickyDrawerIcon) {
-        stickyDrawerIcon.textContent = isHidden ? "▾" : "▴";
-      }
+    btnTogglePatientDrawer.addEventListener("click", (e) => {
+      e.stopPropagation();
+      togglePatientAccordion();
+    });
+  }
+
+  const stickyCompactSummary = document.getElementById("stickyCompactSummary");
+  if (stickyCompactSummary) {
+    stickyCompactSummary.addEventListener("click", () => {
+      togglePatientAccordion();
     });
   }
 
@@ -395,9 +423,19 @@
     const targetMvMl = Math.round(targetMvL * 1000);
 
     if (gPbwDisplay) gPbwDisplay.textContent = pbw.toFixed(1);
-    if (gTvRangeDisplay) gTvRangeDisplay.textContent = tvMin + "〜" + tvMax;
+    if (gTvRangeDisplay) gTvRangeDisplay.textContent = tvMin + "-" + tvMax;
     if (gHeightInput) gHeightInput.value = bState.height;
     if (gHeightSlider) gHeightSlider.value = bState.height;
+
+    // 1行折りたたみサマリーバーの表示更新（「👨 男性 170cm | PBW 66.0kg | 基準TV 396-528mL」）
+    const gSummaryGenderHeight = document.getElementById("gSummaryGenderHeight");
+    const gSummaryPbw = document.getElementById("gSummaryPbw");
+    const gSummaryTvRange = document.getElementById("gSummaryTvRange");
+    if (gSummaryGenderHeight) {
+      gSummaryGenderHeight.textContent = (bState.gender === "male" ? "👨 男性 " : "👩 女性 ") + bState.height + "cm";
+    }
+    if (gSummaryPbw) gSummaryPbw.textContent = pbw.toFixed(1);
+    if (gSummaryTvRange) gSummaryTvRange.textContent = tvMin + "-" + tvMax;
 
     bPbwDisplay.textContent = pbw.toFixed(1);
     bTvMin.textContent = tvMin;
@@ -862,6 +900,7 @@
     }
 
     drawSafetyGraphic();
+    updateMobileFloatingBar();
   }
 
   function drawSafetyGraphic() {
@@ -1571,6 +1610,7 @@
     }
 
     drawAdvSafetyGraphic();
+    updateMobileFloatingBar();
   }
 
   function drawAdvSafetyGraphic() {
@@ -2490,10 +2530,178 @@
     });
   }
 
+  // ==========================================
+  // スマホ専用 下部固定リアルタイム・ステータスバー & ミニグラフポップアップ & セクション2サブタブ
+  // ==========================================
+  function updateMobileFloatingBar() {
+    const bar = document.getElementById("mobileFloatingBar");
+    if (!bar) return;
+
+    const mode = getActiveMode();
+    bar.classList.toggle("mode-basic-hidden", mode === "basic");
+
+    const st = mode === "adv" ? advState : optState;
+    const pbw = st.pbw || calcPBW(st.gender, st.height);
+    const vtPerKg = st.setVt / pbw;
+    const dp = Math.round((st.setVt / st.c) * 10) / 10;
+    const pplat = Math.round((advState.peep + dp) * 10) / 10;
+    const rcExpSec = (st.r * st.c) / 1000;
+    const te = Math.max(0.1, (60 / st.setRr) - st.setTi);
+
+    // 1) 現在の設定ペア：「Vt ○○mL (○.○mL/kg) × RR ○○回」
+    const mfbSetPair = document.getElementById("mfbSetPair");
+    if (mfbSetPair) {
+      mfbSetPair.textContent = "Vt " + st.setVt + "mL (" + vtPerKg.toFixed(1) + "mL/kg) × RR " + st.setRr + "回";
+      if (vtPerKg >= 6.0 && vtPerKg <= 8.5) {
+        mfbSetPair.className = "mfb-pair-chip status-good";
+      } else if (vtPerKg >= 5.0 && vtPerKg <= 9.5) {
+        mfbSetPair.className = "mfb-pair-chip status-warn";
+      } else {
+        mfbSetPair.className = "mfb-pair-chip status-danger";
+      }
+    }
+
+    // 2) 駆動圧：「ΔP: ○.○ cmH2O (≦14)」
+    const mfbDpBadge = document.getElementById("mfbDpBadge");
+    if (mfbDpBadge) {
+      mfbDpBadge.textContent = "ΔP: " + dp.toFixed(1) + " cmH2O (≦14)";
+      if (dp <= 14.0) {
+        mfbDpBadge.className = "mfb-badge status-good";
+      } else if (dp <= 18.0) {
+        mfbDpBadge.className = "mfb-badge status-warn";
+      } else {
+        mfbDpBadge.className = "mfb-badge status-danger";
+      }
+    }
+
+    // 3) プラトー圧：「Pplat: ○○.○ cmH2O (≦30)」
+    const mfbPplatBadge = document.getElementById("mfbPplatBadge");
+    if (mfbPplatBadge) {
+      mfbPplatBadge.textContent = "Pplat: " + pplat.toFixed(1) + " cmH2O (≦30)";
+      if (pplat <= 26.0) {
+        mfbPplatBadge.className = "mfb-badge status-good";
+      } else if (pplat <= 30.0) {
+        mfbPplatBadge.className = "mfb-badge status-warn";
+      } else {
+        mfbPplatBadge.className = "mfb-badge status-danger";
+      }
+    }
+
+    // 4) 呼気時間判定：「Te: ○.○s (充足 / 注意 / 危険)」
+    const mfbTeBadge = document.getElementById("mfbTeBadge");
+    if (mfbTeBadge) {
+      if (te >= 3 * rcExpSec) {
+        mfbTeBadge.textContent = "Te: " + te.toFixed(1) + "s (充足)";
+        mfbTeBadge.className = "mfb-badge status-good";
+      } else if (te >= 2 * rcExpSec) {
+        mfbTeBadge.textContent = "Te: " + te.toFixed(1) + "s (注意)";
+        mfbTeBadge.className = "mfb-badge status-warn";
+      } else {
+        mfbTeBadge.textContent = "Te: " + te.toFixed(1) + "s (危険)";
+        mfbTeBadge.className = "mfb-badge status-danger";
+      }
+    }
+
+    // ミニグラフモーダルが開いている場合も同期描画
+    drawMiniPopupGraphic();
+  }
+
+  function drawMiniPopupGraphic() {
+    const miniCanvas = document.getElementById("miniGraphCanvas");
+    if (!miniCanvas) return;
+    const mode = getActiveMode();
+    const st = mode === "adv" ? advState : optState;
+    const dp = Math.round((st.setVt / st.c) * 10) / 10;
+    const pplat = Math.round((advState.peep + dp) * 10) / 10;
+
+    const infoEl = document.getElementById("miniGraphActiveInfo");
+    const targetEl = document.getElementById("miniGraphTargetVal");
+    const recEl = document.getElementById("miniGraphRecVal");
+    if (infoEl) {
+      infoEl.textContent = "RR " + st.setRr + " 回/分 / Vt " + st.setVt + " mL (ΔP " + dp.toFixed(1) + " / Pplat " + pplat.toFixed(1) + " cmH2O)";
+    }
+    if (targetEl) targetEl.textContent = st.setRr + " bpm / " + st.setVt + " mL";
+    if (recEl) recEl.textContent = st.recRr + " bpm / " + st.recVt + " mL";
+
+    const srcCanvas = mode === "adv" ? advCanvas : optCanvas;
+    if (srcCanvas) {
+      const ctx = miniCanvas.getContext("2d");
+      ctx.clearRect(0, 0, miniCanvas.width, miniCanvas.height);
+      ctx.drawImage(srcCanvas, 0, 0, miniCanvas.width, miniCanvas.height);
+    }
+  }
+
+  function initMobileFeatures() {
+    // 1. 高度臨床モード セクション2 サブタブ切り替え (🫁 呼吸力学 vs 🩸 血液ガス)
+    const btnMech = document.getElementById("btnAdvSubtabMech");
+    const btnAbg = document.getElementById("btnAdvSubtabAbg");
+    const colMech = document.getElementById("advSec2ColMech");
+    const colAbg = document.getElementById("advSec2ColAbg");
+
+    function switchAdvSec2Subtab(subtab) {
+      const isMech = subtab === "mech";
+      if (btnMech) {
+        btnMech.classList.toggle("active", isMech);
+        btnMech.setAttribute("aria-selected", isMech.toString());
+      }
+      if (btnAbg) {
+        btnAbg.classList.toggle("active", !isMech);
+        btnAbg.setAttribute("aria-selected", (!isMech).toString());
+      }
+      if (colMech) colMech.classList.toggle("mobile-subtab-hidden", !isMech);
+      if (colAbg) colAbg.classList.toggle("mobile-subtab-hidden", isMech);
+    }
+
+    if (btnMech) btnMech.addEventListener("click", () => switchAdvSec2Subtab("mech"));
+    if (btnAbg) btnAbg.addEventListener("click", () => switchAdvSec2Subtab("abg"));
+
+    // 2. 下部フローティングバーの「📋 コピー」ボタン
+    const mfbBtnCopy = document.getElementById("mfbBtnCopy");
+    if (mfbBtnCopy) {
+      mfbBtnCopy.addEventListener("click", copyEmrData);
+    }
+
+    // 3. 下部フローティングバーの「📈 グラフへ移動」ボタン (ミニポップアップ表示 & セクション4移動)
+    const mfbBtnGraph = document.getElementById("mfbBtnGraph");
+    const miniModal = document.getElementById("miniGraphModal");
+    const miniOverlay = document.getElementById("miniGraphOverlay");
+    const btnCloseMini = document.getElementById("btnCloseMiniGraph");
+    const btnCloseMiniBottom = document.getElementById("btnCloseMiniGraphBottom");
+    const btnScrollToSec4 = document.getElementById("btnScrollToSec4");
+
+    function openMiniGraph() {
+      if (!miniModal) return;
+      miniModal.classList.remove("hidden");
+      drawMiniPopupGraphic();
+    }
+
+    function closeMiniGraph() {
+      if (!miniModal) return;
+      miniModal.classList.add("hidden");
+    }
+
+    if (mfbBtnGraph) mfbBtnGraph.addEventListener("click", openMiniGraph);
+    if (miniOverlay) miniOverlay.addEventListener("click", closeMiniGraph);
+    if (btnCloseMini) btnCloseMini.addEventListener("click", closeMiniGraph);
+    if (btnCloseMiniBottom) btnCloseMiniBottom.addEventListener("click", closeMiniGraph);
+    if (btnScrollToSec4) {
+      btnScrollToSec4.addEventListener("click", () => {
+        closeMiniGraph();
+        const mode = getActiveMode();
+        const targetSec = document.querySelector(mode === "adv" ? "#viewAdv .eval-col-right" : "#viewOpt .eval-col-right");
+        if (targetSec && targetSec.scrollIntoView) {
+          targetSec.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      });
+    }
+  }
+
   initDiseaseRefTable();
+  initMobileFeatures();
   updateLockUI();
   initExportImport();
   updateBasic();
   recomputeRecommendation(true);
   recomputeAdvRecommendation(true);
+  updateMobileFloatingBar();
 })();

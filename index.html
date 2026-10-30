@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&family=Noto+Sans+JP:wght@400;500;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=20261030_03" />
+  <link rel="stylesheet" href="style.css?v=20261030_04" />
 </head>
 <body>
   <!-- トースト通知 -->
@@ -25,11 +25,11 @@
         <div class="header-actions">
           <button type="button" class="btn-action-trigger btn-copy-emr" id="btnCopyEmr" aria-label="電子カルテ転記用テキストをクリップボードにコピー">
             <span class="btn-act-icon">📋</span>
-            <span class="btn-act-text">カルテ用コピー</span>
+            <span class="btn-act-text"><span class="lbl-pc">カルテ用</span>コピー</span>
           </button>
           <button type="button" class="btn-action-trigger btn-export" id="btnExportData" aria-label="設定をテキストファイルに保存">
             <span class="btn-act-icon">💾</span>
-            <span class="btn-act-text">保存 (txt)</span>
+            <span class="btn-act-text">保存<span class="lbl-pc"> (txt)</span></span>
           </button>
           <button type="button" class="btn-action-trigger btn-import" id="btnImportData" aria-label="保存したテキストファイルを読み込む">
             <span class="btn-act-icon">📂</span>
@@ -38,35 +38,44 @@
           <input type="file" id="fileInputData" accept=".txt,.json" style="display: none;" />
           <button type="button" class="btn-action-trigger btn-pva-direct" id="btnOpenPvaDirect" onclick="window.openPvaManualModal && window.openPvaManualModal()" aria-label="非同調解説書を直接開く">
             <span class="btn-act-icon">⚡</span>
-            <span class="btn-act-text">非同調ガイド</span>
+            <span class="btn-act-text">非同調<span class="lbl-pc">ガイド</span></span>
           </button>
           <button type="button" class="btn-manual-trigger" id="btnOpenManual" onclick="window.openManualModal && window.openManualModal()" aria-label="説明書と解説書を開く">
             <span class="btn-manual-icon">📖</span>
-            <span class="btn-manual-text">使い方・解説書</span>
+            <span class="btn-manual-text"><span class="lbl-pc">使い方・</span>解説書</span>
           </button>
         </div>
       </div>
 
-      <!-- モード切り替えタブ (3タブ体制) -->
+      <!-- モード切り替えタブ (3タブ体制・スマホでも横1列セグメントコントロール) -->
       <div class="mode-tabs mode-tabs-3">
         <button type="button" class="tab-btn" id="tabBasic">
           <span class="tab-icon">📋</span>
-          <span class="tab-text">基本モード</span>
+          <span class="tab-text">基本<span class="lbl-pc">モード</span></span>
         </button>
         <button type="button" class="tab-btn active" id="tabOpt">
           <span class="tab-icon">🫁</span>
-          <span class="tab-text">力学最適化モード</span>
+          <span class="tab-text">力学最適化<span class="lbl-pc">モード</span></span>
         </button>
         <button type="button" class="tab-btn tab-btn-adv" id="tabAdv">
           <span class="tab-icon">🔬</span>
-          <span class="tab-text">高度臨床 (ABG&圧)</span>
+          <span class="tab-text">高度臨床<span class="lbl-pc"> (ABG&圧)</span></span>
         </button>
       </div>
     </header>
 
-    <!-- 常時追従コンパクト患者基本情報バー (Sticky Header: セクション1独立・全モード共通連動) -->
+    <!-- 常時追従コンパクト患者基本情報バー (Sticky Header: 1行折りたたみアコーディオンバー) -->
     <div class="sticky-patient-bar" id="stickyPatientBar" role="region" aria-label="セクション1：患者基本情報">
       <div class="sticky-patient-main-row">
+        <!-- スマホ表示時の1行コンパクトサマリー（「👨 男性 170cm | PBW 66.0kg | 基準TV 396-528mL」） -->
+        <div class="sticky-compact-summary" id="stickyCompactSummary" title="タップして身長・性別を編集">
+          <span class="scs-item scs-gender-height" id="gSummaryGenderHeight">👨 男性 170cm</span>
+          <span class="scs-sep">|</span>
+          <span class="scs-item">PBW <strong class="text-teal" id="gSummaryPbw">66.0</strong>kg</span>
+          <span class="scs-sep">|</span>
+          <span class="scs-item">基準TV <strong class="text-sky" id="gSummaryTvRange">396-528</strong>mL</span>
+        </div>
+
         <div class="sticky-bar-left">
           <div class="sticky-sec-title">
             <span class="step-num sticky-step-badge" id="stickyStepBadge">1</span>
@@ -100,14 +109,14 @@
             </div>
             <div class="sticky-metric-divider"></div>
             <div class="sticky-metric-chip">
-              <span class="smc-label">TV基準 <span class="smc-sub">(×6〜8)</span></span>
-              <strong class="smc-val text-sky" id="gTvRangeDisplay">396〜528</strong>
+              <span class="smc-label">基準TV</span>
+              <strong class="smc-val text-sky" id="gTvRangeDisplay">396-528</strong>
               <span class="smc-unit">mL</span>
             </div>
           </div>
-          <button type="button" class="btn-sticky-drawer-toggle" id="btnTogglePatientDrawer" aria-expanded="false" title="身長スライダー・クイック選択を展開">
-            <span class="drawer-toggle-icon" id="stickyDrawerIcon">▾</span>
-            <span class="drawer-toggle-text">身長スライダー</span>
+          <button type="button" class="btn-sticky-drawer-toggle" id="btnTogglePatientDrawer" aria-expanded="false" title="性別・身長スライダーを展開">
+            <span class="drawer-toggle-text" id="stickyDrawerText">編集</span>
+            <span class="drawer-toggle-icon" id="stickyDrawerIcon">▼</span>
           </button>
         </div>
       </div>
@@ -636,9 +645,14 @@
             <h2>呼吸力学 & 動脈血液ガス (ABG) & 死腔率推計</h2>
             <span class="preset-active-badge" id="advPresetActiveBadge">現在：正常肺 適用中</span>
           </div>
+          <!-- スマホ専用 セクション2内部切り替えサブタブ（768px未満で表示・縦幅を半分以下に圧縮） -->
+          <div class="adv-sec2-subtabs" id="advSec2Subtabs" role="tablist" aria-label="セクション2サブタブ">
+            <button type="button" class="adv-subtab-btn active" id="btnAdvSubtabMech" data-subtab="mech" role="tab" aria-selected="true">🫁 呼吸力学 (R/C)</button>
+            <button type="button" class="adv-subtab-btn" id="btnAdvSubtabAbg" data-subtab="abg" role="tab" aria-selected="false">🩸 血液ガス (ABG)</button>
+          </div>
           <!-- 高度臨床モード セクション2：2カラム構成（左：呼吸力学パラメータ / 右：血液ガス(ABG)連動 & 死腔推計） -->
           <div class="adv-sec2-two-col">
-            <div class="adv-sec2-col-left">
+            <div class="adv-sec2-col-left" id="advSec2ColMech">
               <div class="sub-col-header-bar">
                 <span class="sub-col-badge">🫁 呼吸力学パラメータ</span>
                 <span class="sub-col-note">時定数・抵抗・コンプライアンス</span>
@@ -695,7 +709,7 @@
               </div>
             </div>
 
-            <div class="adv-sec2-col-right">
+            <div class="adv-sec2-col-right mobile-subtab-hidden" id="advSec2ColAbg">
               <!-- ABGパネル -->
               <div class="abg-feature-card">
                 <div class="abg-card-header">
@@ -954,6 +968,48 @@
       <p>※ 本ツールは Otis最小呼吸仕事物理論・呼気時定数解析・Bohr-Enghoff死腔計算・Devine式に基づく換気パラメータ算出を行っています。</p>
       <p>※ 人工呼吸器の設定変更および臨床判断は、必ず医師の指示および患者状態・動脈血液ガス(ABG)に基づき行ってください。</p>
     </footer>
+  </div>
+
+  <!-- スマホ専用：下部固定リアルタイム・ステータスバー (Floating Bottom Bar: 幅768px未満で表示) -->
+  <div class="mobile-floating-bar" id="mobileFloatingBar" role="region" aria-label="リアルタイム換気安全性ステータスバー">
+    <div class="mfb-top-row">
+      <span class="mfb-pair-chip status-good" id="mfbSetPair">Vt 470mL (7.1mL/kg) × RR 14回</span>
+      <div class="mfb-actions">
+        <button type="button" class="mfb-action-btn mfb-btn-copy" id="mfbBtnCopy" aria-label="カルテ用テキストをコピー">📋 コピー</button>
+        <button type="button" class="mfb-action-btn mfb-btn-graph" id="mfbBtnGraph" aria-label="換気特性グラフをミニポップアップ表示">📈 グラフへ移動</button>
+      </div>
+    </div>
+    <div class="mfb-bottom-row">
+      <span class="mfb-badge status-good" id="mfbDpBadge">ΔP: 9.4 cmH2O (≦14)</span>
+      <span class="mfb-badge status-good" id="mfbPplatBadge">Pplat: 17.4 cmH2O (≦30)</span>
+      <span class="mfb-badge status-good" id="mfbTeBadge">Te: 3.3s (充足)</span>
+    </div>
+  </div>
+
+  <!-- スマホ用：換気特性グラフ ミニポップアップモーダル（スクロールせずにその場でグラフを確認） -->
+  <div class="mini-graph-modal hidden" id="miniGraphModal" role="dialog" aria-modal="true" aria-labelledby="miniGraphTitle">
+    <div class="mini-graph-overlay" id="miniGraphOverlay"></div>
+    <div class="mini-graph-card">
+      <div class="mini-graph-header">
+        <span class="mini-graph-title" id="miniGraphTitle">📈 換気特性グラフィック (リアルタイム確認)</span>
+        <button type="button" class="btn-mini-graph-close" id="btnCloseMiniGraph" aria-label="閉じる">✕</button>
+      </div>
+      <div class="mini-graph-body">
+        <div class="graph-info-banner">
+          <span class="info-badge">現在選択:</span>
+          <span class="info-val" id="miniGraphActiveInfo">RR 14 回/分 / Vt 470 mL</span>
+        </div>
+        <canvas id="miniGraphCanvas" width="520" height="250"></canvas>
+        <div class="mini-graph-legend">
+          <span><strong class="text-amber">● 現在設定:</strong> <span id="miniGraphTargetVal">14 bpm / 470 mL</span></span>
+          <span><strong class="text-sky">◆ Otis推奨:</strong> <span id="miniGraphRecVal">14 bpm / 470 mL</span></span>
+        </div>
+      </div>
+      <div class="mini-graph-footer">
+        <button type="button" class="btn-mini-scroll-sec4" id="btnScrollToSec4">👇 ページ内のグラフ＆圧評価欄へ移動</button>
+        <button type="button" class="btn-mini-close-main" id="btnCloseMiniGraphBottom">閉じる</button>
+      </div>
+    </div>
   </div>
 
   <div style="display:none;" id="placeholder"></div>
@@ -2191,6 +2247,6 @@ ight)$$（※CO2産生量 VCO2 一定の仮定）</span>
       </div>
     </div>
   </div>
-  <script src="app.js?v=20261030_03"></script>
+  <script src="app.js?v=20261030_04"></script>
 </body>
 </html>
