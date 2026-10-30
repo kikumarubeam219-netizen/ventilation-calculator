@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&family=Noto+Sans+JP:wght@400;500;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=20261030_01" />
+  <link rel="stylesheet" href="style.css?v=20261030_02" />
 </head>
 <body>
   <!-- トースト通知 -->
@@ -185,7 +185,13 @@
             </div>
           </div>
           <div class="result-card-box box-amber">
-            <div class="box-header"><span class="box-title">分時換気量 (MV)</span><span class="box-tag">PBW × 100 mL/min (0.1 L/kg)</span></div>
+            <div class="box-header">
+              <span class="box-title">分時換気量 (MV)</span>
+              <div class="box-header-right">
+                <span class="disease-active-badge" id="bActiveDiseaseBadge">現在：安静時（基準） 適用中</span>
+                <span class="box-tag">PBW × 100 mL/min (0.1 L/kg)</span>
+              </div>
+            </div>
             <div class="mv-base-row"><div class="mv-base-label">基準換気量 (100%):</div><div class="mv-base-val"><span class="text-amber" id="bMvBaseL">6.6</span> <span class="range-unit">L/min</span> (<span id="bMvBaseMl">6,600</span> mL/min)</div></div>
             <div class="slider-group" style="margin-top: 10px;" id="cardBMvPct">
               <div class="slider-top">
@@ -208,6 +214,43 @@
             <div class="mv-target-wrap">
               <div class="mv-target-label">目標分時換気量:</div>
               <div class="mv-target-val"><span class="mv-target-huge text-amber" id="bMvTargetL">6.6</span> <span class="range-unit" style="font-size:16px;">L/min</span> <span class="mv-target-sub">(<span id="bMvTargetMl">6,600</span> mL/min)</span></div>
+            </div>
+
+            <!-- 6・7・8 mL/kg 各設定時における「推奨TV × 必要RR」組み合わせ一覧 -->
+            <div class="tv-rr-combo-box" id="bTvRrComboBox">
+              <div class="combo-box-header">
+                <span class="combo-box-title">📊 PBW換算別「推奨TV × 必要RR」組み合わせ一覧</span>
+                <span class="combo-box-sub">目標MV <strong class="text-amber" id="bComboTargetMvRef">6.6</strong> L/min 達成目安</span>
+              </div>
+              <div class="tv-rr-combo-grid">
+                <div class="combo-card combo-6">
+                  <div class="combo-card-badge">6 mL/kg (肺保護重視)</div>
+                  <div class="combo-card-formula">
+                    <span class="combo-tv"><strong class="text-sky" id="bComboTv6">396</strong> <small>mL</small></span>
+                    <span class="combo-times">×</span>
+                    <span class="combo-rr"><strong class="text-teal" id="bComboRr6">17</strong> <small>回/分</small></span>
+                  </div>
+                  <div class="combo-card-sub" id="bComboSub6">計算RR: 16.7回/分 (実効MV 6.7 L)</div>
+                </div>
+                <div class="combo-card combo-7 combo-highlight">
+                  <div class="combo-card-badge">7 mL/kg (標準中間)</div>
+                  <div class="combo-card-formula">
+                    <span class="combo-tv"><strong class="text-sky" id="bComboTv7">462</strong> <small>mL</small></span>
+                    <span class="combo-times">×</span>
+                    <span class="combo-rr"><strong class="text-teal" id="bComboRr7">14</strong> <small>回/分</small></span>
+                  </div>
+                  <div class="combo-card-sub" id="bComboSub7">計算RR: 14.3回/分 (実効MV 6.5 L)</div>
+                </div>
+                <div class="combo-card combo-8">
+                  <div class="combo-card-badge">8 mL/kg (標準上限)</div>
+                  <div class="combo-card-formula">
+                    <span class="combo-tv"><strong class="text-sky" id="bComboTv8">528</strong> <small>mL</small></span>
+                    <span class="combo-times">×</span>
+                    <span class="combo-rr"><strong class="text-teal" id="bComboRr8">13</strong> <small>回/分</small></span>
+                  </div>
+                  <div class="combo-card-sub" id="bComboSub8">計算RR: 12.5回/分 (実効MV 6.9 L)</div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -232,73 +275,73 @@
                       <td><span class="status-dot dot-red"></span>痙攣・てんかん重積</td>
                       <td class="pct-val">200〜300%以上</td>
                       <td>著明な筋活動亢進・乳酸蓄積</td>
-                      <td><button type="button" class="btn-apply-pct" data-pct="250">250% 適用</button></td>
+                      <td><button type="button" class="btn-apply-pct" data-pct="250" data-disease="痙攣・てんかん重積">250% 適用</button></td>
                     </tr>
                     <tr class="ref-row-high">
                       <td><span class="status-dot dot-red"></span>シバリング</td>
                       <td class="pct-val">150〜300%</td>
                       <td>TTM導入・復温時に酸素消費激増</td>
-                      <td><button type="button" class="btn-apply-pct" data-pct="200">200% 適用</button></td>
+                      <td><button type="button" class="btn-apply-pct" data-pct="200" data-disease="シバリング">200% 適用</button></td>
                     </tr>
                     <tr class="ref-row-high">
                       <td><span class="status-dot dot-red"></span>重症熱傷</td>
                       <td class="pct-val">150〜200%</td>
                       <td>超代謝状態 (Hypermetabolism)</td>
-                      <td><button type="button" class="btn-apply-pct" data-pct="175">175% 適用</button></td>
+                      <td><button type="button" class="btn-apply-pct" data-pct="175" data-disease="重症熱傷">175% 適用</button></td>
                     </tr>
                     <tr class="ref-row-mid-high">
                       <td><span class="status-dot dot-orange"></span>敗血症・SIRS</td>
                       <td class="pct-val">120〜160%</td>
                       <td>全身炎症による代謝・CO2産生亢進</td>
-                      <td><button type="button" class="btn-apply-pct" data-pct="140">140% 適用</button></td>
+                      <td><button type="button" class="btn-apply-pct" data-pct="140" data-disease="敗血症・SIRS">140% 適用</button></td>
                     </tr>
                     <tr class="ref-row-mid-high">
                       <td><span class="status-dot dot-orange"></span>呼吸仕事量の増大</td>
                       <td class="pct-val">120〜150%</td>
                       <td>努力性自発呼吸・人工呼吸非同調</td>
-                      <td><button type="button" class="btn-apply-pct" data-pct="135">135% 適用</button></td>
+                      <td><button type="button" class="btn-apply-pct" data-pct="135" data-disease="呼吸仕事量の増大">135% 適用</button></td>
                     </tr>
                     <tr class="ref-row-mid">
                       <td><span class="status-dot dot-amber"></span>発熱 (38〜39℃)</td>
                       <td class="pct-val">110〜130%</td>
                       <td>体温1℃上昇毎に約10〜13%増加</td>
-                      <td><button type="button" class="btn-apply-pct" data-pct="120">120% 適用</button></td>
+                      <td><button type="button" class="btn-apply-pct" data-pct="120" data-disease="発熱 (38〜39℃)">120% 適用</button></td>
                     </tr>
                     <tr class="ref-row-mid">
                       <td><span class="status-dot dot-amber"></span>不穏・せん妄</td>
                       <td class="pct-val">110〜130%</td>
                       <td>交感神経緊張・体動による消費増</td>
-                      <td><button type="button" class="btn-apply-pct" data-pct="120">120% 適用</button></td>
+                      <td><button type="button" class="btn-apply-pct" data-pct="120" data-disease="不穏・せん妄">120% 適用</button></td>
                     </tr>
                     <tr class="ref-row-base">
                       <td><span class="status-dot dot-teal"></span>安静時（基準）</td>
                       <td class="pct-val text-teal">100%</td>
                       <td>正常成人の安静時基礎代謝基準</td>
-                      <td><button type="button" class="btn-apply-pct btn-base" data-pct="100">100% 基準</button></td>
+                      <td><button type="button" class="btn-apply-pct btn-base active-disease-btn" data-pct="100" data-disease="安静時（基準）">100% 基準</button></td>
                     </tr>
                     <tr class="ref-row-low">
                       <td><span class="status-dot dot-blue"></span>鎮静・鎮痛下</td>
                       <td class="pct-val">80〜90%</td>
                       <td>筋活動低下・交感神経抑制</td>
-                      <td><button type="button" class="btn-apply-pct" data-pct="85">85% 適用</button></td>
+                      <td><button type="button" class="btn-apply-pct" data-pct="85" data-disease="鎮静・鎮痛下">85% 適用</button></td>
                     </tr>
                     <tr class="ref-row-low">
                       <td><span class="status-dot dot-blue"></span>筋弛緩薬投与下</td>
                       <td class="pct-val">70〜80%</td>
                       <td>骨格筋活動の完全停止</td>
-                      <td><button type="button" class="btn-apply-pct" data-pct="75">75% 適用</button></td>
+                      <td><button type="button" class="btn-apply-pct" data-pct="75" data-disease="筋弛緩薬投与下">75% 適用</button></td>
                     </tr>
                     <tr class="ref-row-low">
                       <td><span class="status-dot dot-blue"></span>脳死・深昏睡</td>
                       <td class="pct-val">70〜80%</td>
                       <td>脳および中枢神経代謝の著明低下</td>
-                      <td><button type="button" class="btn-apply-pct" data-pct="75">75% 適用</button></td>
+                      <td><button type="button" class="btn-apply-pct" data-pct="75" data-disease="脳死・深昏睡">75% 適用</button></td>
                     </tr>
                     <tr class="ref-row-low">
                       <td><span class="status-dot dot-cyan"></span>低体温療法 (32〜34℃)</td>
                       <td class="pct-val">50〜70%</td>
                       <td>体温1℃低下毎に約7〜10%減少</td>
-                      <td><button type="button" class="btn-apply-pct" data-pct="60">60% 適用</button></td>
+                      <td><button type="button" class="btn-apply-pct" data-pct="60" data-disease="低体温療法 (32〜34℃)">60% 適用</button></td>
                     </tr>
                   </tbody>
                 </table>
@@ -346,7 +389,11 @@
         </section>
 
         <section class="card-section">
-          <div class="section-header"><span class="step-num">2</span><h2>呼吸力学・ガス交換パラメータ</h2></div>
+          <div class="section-header">
+            <span class="step-num">2</span>
+            <h2>呼吸力学・ガス交換パラメータ</h2>
+            <span class="preset-active-badge" id="optPresetActiveBadge">現在：正常肺 適用中</span>
+          </div>
           <div class="preset-row">
             <span class="preset-label">病態プリセット:</span>
             <div class="preset-buttons">
@@ -406,57 +453,117 @@
               <div class="header-left"><span class="step-num bg-amber">3</span><h2>設定シミュレーション & 推奨換気量</h2></div>
               <button type="button" class="btn-reset-rec" id="btnResetToRec">🔄 推奨値にリセット</button>
             </div>
-            <p class="section-lead">スライダー・直接入力・＋/－ボタンで自由に調整できます（MV・Vt・RR・Ti相互連動＆右側グラフリアルタイム追従）。</p>
+            <p class="section-lead">🔓/🔒ボタンで任意の項目（VtやRR・Ti等）をロック固定すると、残りの項目同士で自動連動計算されます。スライダー下の▲はOtis推奨値位置を示します。</p>
             <div class="recommend-grid-4">
               <div class="rec-card card-mv" id="cardMv">
-                <div class="rec-card-top"><span class="rec-label">① 分時換気量 (MV)</span><span class="rec-pill pill-amber" id="pillRecMv">推奨 6.6</span></div>
+                <div class="rec-card-top">
+                  <div class="rec-label-wrap">
+                    <span class="rec-label">① 分時換気量 (MV)</span>
+                    <button type="button" class="btn-param-lock" id="btnLockMv" data-lock-target="mv" aria-pressed="false" title="分時換気量(MV)をロック固定 / 解除">
+                      <span class="lock-icon">🔓</span><span class="lock-txt">固定</span>
+                    </button>
+                  </div>
+                  <span class="rec-pill pill-amber" id="pillRecMv">推奨 6.6</span>
+                </div>
                 <div class="rec-stepper-wrap">
                   <button type="button" class="btn-step btn-step-sm" data-target="setMv" data-action="dec">−</button>
                   <div class="input-unit-wrap"><input type="number" id="setMvInput" class="num-direct-input num-input-large text-amber" min="2.0" max="22.0" step="0.1" value="6.6" /><span class="input-unit">L/min</span></div>
                   <button type="button" class="btn-step btn-step-sm" data-target="setMv" data-action="inc">＋</button>
                 </div>
-                <div class="card-slider-wrap"><input type="range" id="setMvSlider" class="custom-range range-amber" min="2.0" max="22.0" step="0.1" value="6.6" /></div>
+                <div class="card-slider-wrap">
+                  <input type="range" id="setMvSlider" class="custom-range range-amber" min="2.0" max="22.0" step="0.1" value="6.6" />
+                  <div class="slider-rec-track">
+                    <div class="rec-marker marker-amber" id="markerRecMv" title="Otis推奨MV (クリックで推奨値へ移動)">
+                      <span class="marker-tri">▲</span><span class="marker-lbl" id="markerLblMv">6.6</span>
+                    </div>
+                  </div>
+                </div>
                 <div class="rec-sub"><span id="recMvMl">6,600</span> mL/min</div>
-                <div class="rec-note text-amber">※Vt・RR・Tiが追従</div>
+                <div class="rec-note text-amber" id="recMvNote">※Vt・RR・Tiが追従</div>
               </div>
               <div class="rec-card card-vt" id="cardVt">
-                <div class="rec-card-top"><span class="rec-label">② 一回換気量 (Vt)</span><span class="rec-pill pill-sky" id="pillRecVt">推奨 470</span></div>
+                <div class="rec-card-top">
+                  <div class="rec-label-wrap">
+                    <span class="rec-label">② 一回換気量 (Vt)</span>
+                    <button type="button" class="btn-param-lock" id="btnLockVt" data-lock-target="vt" aria-pressed="false" title="一回換気量(Vt)をロック固定 / 解除">
+                      <span class="lock-icon">🔓</span><span class="lock-txt">固定</span>
+                    </button>
+                  </div>
+                  <span class="rec-pill pill-sky" id="pillRecVt">推奨 470</span>
+                </div>
                 <div class="rec-stepper-wrap">
                   <button type="button" class="btn-step btn-step-sm" data-target="setVt" data-action="dec">−</button>
                   <div class="input-unit-wrap"><input type="number" id="setVtInput" class="num-direct-input num-input-large text-sky" min="200" max="950" step="10" value="470" /><span class="input-unit">mL</span></div>
                   <button type="button" class="btn-step btn-step-sm" data-target="setVt" data-action="inc">＋</button>
                 </div>
-                <div class="card-slider-wrap"><input type="range" id="setVtSlider" class="custom-range" min="200" max="950" step="10" value="470" /></div>
+                <div class="card-slider-wrap">
+                  <input type="range" id="setVtSlider" class="custom-range" min="200" max="950" step="10" value="470" />
+                  <div class="slider-rec-track">
+                    <div class="rec-marker marker-sky" id="markerRecVt" title="Otis推奨Vt (クリックで推奨値へ移動)">
+                      <span class="marker-tri">▲</span><span class="marker-lbl" id="markerLblVt">470</span>
+                    </div>
+                  </div>
+                </div>
                 <div class="rec-sub"><span id="recVtPerKg">7.1</span> mL/kg PBW</div>
-                <div class="rec-note">基準 (×6〜8): <span id="recTvStdNote">396〜528</span>mL</div>
+                <div class="rec-note" id="recVtNote">基準 (×6〜8): <span id="recTvStdNote">396〜528</span>mL</div>
               </div>
               <div class="rec-card card-rr" id="cardRr">
-                <div class="rec-card-top"><span class="rec-label">③ 呼吸回数 (RR)</span><span class="rec-pill pill-teal" id="pillRecRr">推奨 14</span></div>
+                <div class="rec-card-top">
+                  <div class="rec-label-wrap">
+                    <span class="rec-label">③ 呼吸回数 (RR)</span>
+                    <button type="button" class="btn-param-lock" id="btnLockRr" data-lock-target="rr" aria-pressed="false" title="呼吸回数(RR)をロック固定 / 解除">
+                      <span class="lock-icon">🔓</span><span class="lock-txt">固定</span>
+                    </button>
+                  </div>
+                  <span class="rec-pill pill-teal" id="pillRecRr">推奨 14</span>
+                </div>
                 <div class="rec-stepper-wrap">
                   <button type="button" class="btn-step btn-step-sm" data-target="setRr" data-action="dec">−</button>
                   <div class="input-unit-wrap"><input type="number" id="setRrInput" class="num-direct-input num-input-large text-teal" min="6" max="42" step="1" value="14" /><span class="input-unit">回/分</span></div>
                   <button type="button" class="btn-step btn-step-sm" data-target="setRr" data-action="inc">＋</button>
                 </div>
-                <div class="card-slider-wrap"><input type="range" id="setRrSlider" class="custom-range range-teal" min="6" max="42" step="1" value="14" /></div>
+                <div class="card-slider-wrap">
+                  <input type="range" id="setRrSlider" class="custom-range range-teal" min="6" max="42" step="1" value="14" />
+                  <div class="slider-rec-track">
+                    <div class="rec-marker marker-teal" id="markerRecRr" title="Otis推奨RR (クリックで推奨値へ移動)">
+                      <span class="marker-tri">▲</span><span class="marker-lbl" id="markerLblRr">14</span>
+                    </div>
+                  </div>
+                </div>
                 <div class="rec-sub">1周期: <span id="recCycleTime">4.3</span> 秒</div>
-                <div class="rec-note">※Vtと連動</div>
+                <div class="rec-note" id="recRrNote">※Vtと連動</div>
               </div>
               <div class="rec-card card-ti" id="cardTi">
-                <div class="rec-card-top"><span class="rec-label">④ 吸気時間 (Ti)</span><span class="rec-pill pill-purple" id="pillRecTi">推奨 1.00</span></div>
+                <div class="rec-card-top">
+                  <div class="rec-label-wrap">
+                    <span class="rec-label">④ 吸気時間 (Ti)</span>
+                    <button type="button" class="btn-param-lock" id="btnLockTi" data-lock-target="ti" aria-pressed="false" title="吸気時間(Ti)をロック固定 / 解除">
+                      <span class="lock-icon">🔓</span><span class="lock-txt">固定</span>
+                    </button>
+                  </div>
+                  <span class="rec-pill pill-purple" id="pillRecTi">推奨 1.00</span>
+                </div>
                 <div class="rec-stepper-wrap">
                   <button type="button" class="btn-step btn-step-sm" data-target="setTi" data-action="dec">−</button>
                   <div class="input-unit-wrap"><input type="number" id="setTiInput" class="num-direct-input num-input-large text-purple" min="0.40" max="2.20" step="0.05" value="1.00" /><span class="input-unit">秒</span></div>
                   <button type="button" class="btn-step btn-step-sm" data-target="setTi" data-action="inc">＋</button>
                 </div>
-                <div class="card-slider-wrap"><input type="range" id="setTiSlider" class="custom-range range-purple" min="0.40" max="2.20" step="0.05" value="1.00" /></div>
-                <div class="rec-sub">I:E比 <strong id="recIeRatio">1 : 3.3</strong></div>
-                <div class="rec-note" id="recTiNote">呼気 Te: 3.3s (≧ 2×RCexp)</div>
+                <div class="card-slider-wrap">
+                  <input type="range" id="setTiSlider" class="custom-range range-purple" min="0.40" max="2.20" step="0.05" value="1.00" />
+                  <div class="slider-rec-track">
+                    <div class="rec-marker marker-purple" id="markerRecTi" title="Otis推奨Ti (クリックで推奨値へ移動)">
+                      <span class="marker-tri">▲</span><span class="marker-lbl" id="markerLblTi">1.00</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="rec-sub">I:E比 <strong id="recIeRatio">1 : 3.3</strong> ／ 呼気 Te: <strong id="optTeInlineVal">3.3</strong>s</div>
+                <div class="rec-note te-badge-wrap"><span class="safety-status status-good" id="recTiNote">Te ≧ 3×RCexp（完全排出）</span></div>
               </div>
             </div>
           </section>
 
           <section class="card-section eval-col-right">
-            <div class="section-header"><span class="step-num">4</span><h2>換気特性グラフィック & 駆動圧評価</h2></div>
+            <div class="section-header"><span class="step-num">4</span><h2>換気特性グラフィック & 駆動圧・呼気評価</h2></div>
             <div class="canvas-wrapper">
               <div class="graph-info-banner" id="graphInfoBanner">
                 <span class="info-badge">現在選択:</span>
@@ -474,6 +581,14 @@
               <div class="safety-info">
                 <div class="safety-title">設定一回換気量での推定 駆動圧 (Driving Pressure: ΔP = Vt / C)</div>
                 <div class="safety-desc">駆動圧: <strong id="dpDisplay">9.4</strong> cmH2O <span class="safety-status status-good" id="dpStatus">良好 (≦ 14 cmH2O)</span></div>
+              </div>
+            </div>
+            <!-- 力学最適化モードでも3段階の呼気時間(Te)充足度判定を表示 -->
+            <div class="safety-banner auto-peep-banner" id="optAutoPeepBanner">
+              <div class="safety-icon">🌬️</div>
+              <div class="safety-info">
+                <div class="safety-title">呼気時間 (Te) 充足度 ＆ 内因性PEEP (Auto-PEEP) 3段階判定</div>
+                <div class="safety-desc">呼気 Te: <strong id="optTeVal">3.3</strong>秒 (完全排出 3×RCexp: <strong id="optTeNeed3Val">1.5</strong>秒 / 許容下限 2×RCexp: <strong id="optTeNeed2Val">1.0</strong>秒) <span class="safety-status status-good" id="optAutoPeepStatus">Te ≧ 3×RCexp（完全排出）</span></div>
               </div>
             </div>
           </section>
@@ -512,7 +627,11 @@
         </section>
 
         <section class="card-section">
-          <div class="section-header"><span class="step-num bg-purple">2</span><h2>呼吸力学 & 動脈血液ガス (ABG) & 死腔率推計</h2></div>
+          <div class="section-header">
+            <span class="step-num bg-purple">2</span>
+            <h2>呼吸力学 & 動脈血液ガス (ABG) & 死腔率推計</h2>
+            <span class="preset-active-badge" id="advPresetActiveBadge">現在：正常肺 適用中</span>
+          </div>
           <!-- 高度臨床モード セクション2：2カラム構成（左：呼吸力学パラメータ / 右：血液ガス(ABG)連動 & 死腔推計） -->
           <div class="adv-sec2-two-col">
             <div class="adv-sec2-col-left">
@@ -633,51 +752,111 @@
               <div class="header-left"><span class="step-num bg-purple">3</span><h2>設定シミュレーション & 推奨換気量</h2></div>
               <button type="button" class="btn-reset-rec" id="advBtnResetToRec">🔄 推奨値にリセット</button>
             </div>
-            <p class="section-lead">スライダー操作と同時に、右側のグラフ点（●）と気道内圧 (Pplat・ΔP・Ppeak) ＆ Auto-PEEPリスクを確認できます。</p>
+            <p class="section-lead">🔓/🔒ボタンで任意の項目（VtやRR・Ti等）をロック固定すると、残りの項目同士で自動連動計算されます。スライダー下の▲はOtis推奨値位置を示します。</p>
             <div class="recommend-grid-4">
-              <div class="rec-card card-mv">
-                <div class="rec-card-top"><span class="rec-label">① 分時換気量 (MV)</span><span class="rec-pill pill-amber" id="advPillRecMv">推奨 6.6</span></div>
+              <div class="rec-card card-mv" id="advCardMv">
+                <div class="rec-card-top">
+                  <div class="rec-label-wrap">
+                    <span class="rec-label">① 分時換気量 (MV)</span>
+                    <button type="button" class="btn-param-lock" id="advBtnLockMv" data-lock-target="mv" aria-pressed="false" title="分時換気量(MV)をロック固定 / 解除">
+                      <span class="lock-icon">🔓</span><span class="lock-txt">固定</span>
+                    </button>
+                  </div>
+                  <span class="rec-pill pill-amber" id="advPillRecMv">推奨 6.6</span>
+                </div>
                 <div class="rec-stepper-wrap">
                   <button type="button" class="btn-step btn-step-sm" data-target="advSetMv" data-action="dec">−</button>
                   <div class="input-unit-wrap"><input type="number" id="advSetMvInput" class="num-direct-input num-input-large text-amber" min="2.0" max="22.0" step="0.1" value="6.6" /><span class="input-unit">L/min</span></div>
                   <button type="button" class="btn-step btn-step-sm" data-target="advSetMv" data-action="inc">＋</button>
                 </div>
-                <div class="card-slider-wrap"><input type="range" id="advSetMvSlider" class="custom-range range-amber" min="2.0" max="22.0" step="0.1" value="6.6" /></div>
+                <div class="card-slider-wrap">
+                  <input type="range" id="advSetMvSlider" class="custom-range range-amber" min="2.0" max="22.0" step="0.1" value="6.6" />
+                  <div class="slider-rec-track">
+                    <div class="rec-marker marker-amber" id="advMarkerRecMv" title="Otis推奨MV (クリックで推奨値へ移動)">
+                      <span class="marker-tri">▲</span><span class="marker-lbl" id="advMarkerLblMv">6.6</span>
+                    </div>
+                  </div>
+                </div>
                 <div class="rec-sub"><span id="advRecMvMl">6,600</span> mL/min</div>
-                <div class="rec-note text-amber">※Vt・RR・Tiが追従</div>
+                <div class="rec-note text-amber" id="advRecMvNote">※Vt・RR・Tiが追従</div>
               </div>
-              <div class="rec-card card-vt">
-                <div class="rec-card-top"><span class="rec-label">② 一回換気量 (Vt)</span><span class="rec-pill pill-sky" id="advPillRecVt">推奨 470</span></div>
+              <div class="rec-card card-vt" id="advCardVt">
+                <div class="rec-card-top">
+                  <div class="rec-label-wrap">
+                    <span class="rec-label">② 一回換気量 (Vt)</span>
+                    <button type="button" class="btn-param-lock" id="advBtnLockVt" data-lock-target="vt" aria-pressed="false" title="一回換気量(Vt)をロック固定 / 解除">
+                      <span class="lock-icon">🔓</span><span class="lock-txt">固定</span>
+                    </button>
+                  </div>
+                  <span class="rec-pill pill-sky" id="advPillRecVt">推奨 470</span>
+                </div>
                 <div class="rec-stepper-wrap">
                   <button type="button" class="btn-step btn-step-sm" data-target="advSetVt" data-action="dec">−</button>
                   <div class="input-unit-wrap"><input type="number" id="advSetVtInput" class="num-direct-input num-input-large text-sky" min="200" max="950" step="10" value="470" /><span class="input-unit">mL</span></div>
                   <button type="button" class="btn-step btn-step-sm" data-target="advSetVt" data-action="inc">＋</button>
                 </div>
-                <div class="card-slider-wrap"><input type="range" id="advSetVtSlider" class="custom-range" min="200" max="950" step="10" value="470" /></div>
+                <div class="card-slider-wrap">
+                  <input type="range" id="advSetVtSlider" class="custom-range" min="200" max="950" step="10" value="470" />
+                  <div class="slider-rec-track">
+                    <div class="rec-marker marker-sky" id="advMarkerRecVt" title="Otis推奨Vt (クリックで推奨値へ移動)">
+                      <span class="marker-tri">▲</span><span class="marker-lbl" id="advMarkerLblVt">470</span>
+                    </div>
+                  </div>
+                </div>
                 <div class="rec-sub"><span id="advRecVtPerKg">7.1</span> mL/kg PBW</div>
-                <div class="rec-note">基準 (×6〜8): <span id="advRecTvStdNote">396〜528</span>mL</div>
+                <div class="rec-note" id="advRecVtNote">基準 (×6〜8): <span id="advRecTvStdNote">396〜528</span>mL</div>
               </div>
-              <div class="rec-card card-rr">
-                <div class="rec-card-top"><span class="rec-label">③ 呼吸回数 (RR)</span><span class="rec-pill pill-teal" id="advPillRecRr">推奨 14</span></div>
+              <div class="rec-card card-rr" id="advCardRr">
+                <div class="rec-card-top">
+                  <div class="rec-label-wrap">
+                    <span class="rec-label">③ 呼吸回数 (RR)</span>
+                    <button type="button" class="btn-param-lock" id="advBtnLockRr" data-lock-target="rr" aria-pressed="false" title="呼吸回数(RR)をロック固定 / 解除">
+                      <span class="lock-icon">🔓</span><span class="lock-txt">固定</span>
+                    </button>
+                  </div>
+                  <span class="rec-pill pill-teal" id="advPillRecRr">推奨 14</span>
+                </div>
                 <div class="rec-stepper-wrap">
                   <button type="button" class="btn-step btn-step-sm" data-target="advSetRr" data-action="dec">−</button>
                   <div class="input-unit-wrap"><input type="number" id="advSetRrInput" class="num-direct-input num-input-large text-teal" min="6" max="42" step="1" value="14" /><span class="input-unit">回/分</span></div>
                   <button type="button" class="btn-step btn-step-sm" data-target="advSetRr" data-action="inc">＋</button>
                 </div>
-                <div class="card-slider-wrap"><input type="range" id="advSetRrSlider" class="custom-range range-teal" min="6" max="42" step="1" value="14" /></div>
+                <div class="card-slider-wrap">
+                  <input type="range" id="advSetRrSlider" class="custom-range range-teal" min="6" max="42" step="1" value="14" />
+                  <div class="slider-rec-track">
+                    <div class="rec-marker marker-teal" id="advMarkerRecRr" title="Otis推奨RR (クリックで推奨値へ移動)">
+                      <span class="marker-tri">▲</span><span class="marker-lbl" id="advMarkerLblRr">14</span>
+                    </div>
+                  </div>
+                </div>
                 <div class="rec-sub">1周期: <span id="advRecCycleTime">4.3</span> 秒</div>
-                <div class="rec-note">※Vtと連動</div>
+                <div class="rec-note" id="advRecRrNote">※Vtと連動</div>
               </div>
-              <div class="rec-card card-ti">
-                <div class="rec-card-top"><span class="rec-label">④ 吸気時間 (Ti)</span><span class="rec-pill pill-purple" id="advPillRecTi">推奨 1.00</span></div>
+              <div class="rec-card card-ti" id="advCardTi">
+                <div class="rec-card-top">
+                  <div class="rec-label-wrap">
+                    <span class="rec-label">④ 吸気時間 (Ti)</span>
+                    <button type="button" class="btn-param-lock" id="advBtnLockTi" data-lock-target="ti" aria-pressed="false" title="吸気時間(Ti)をロック固定 / 解除">
+                      <span class="lock-icon">🔓</span><span class="lock-txt">固定</span>
+                    </button>
+                  </div>
+                  <span class="rec-pill pill-purple" id="advPillRecTi">推奨 1.00</span>
+                </div>
                 <div class="rec-stepper-wrap">
                   <button type="button" class="btn-step btn-step-sm" data-target="advSetTi" data-action="dec">−</button>
                   <div class="input-unit-wrap"><input type="number" id="advSetTiInput" class="num-direct-input num-input-large text-purple" min="0.40" max="2.20" step="0.05" value="1.00" /><span class="input-unit">秒</span></div>
                   <button type="button" class="btn-step btn-step-sm" data-target="advSetTi" data-action="inc">＋</button>
                 </div>
-                <div class="card-slider-wrap"><input type="range" id="advSetTiSlider" class="custom-range range-purple" min="0.40" max="2.20" step="0.05" value="1.00" /></div>
-                <div class="rec-sub">I:E比 <strong id="advRecIeRatio">1 : 3.3</strong></div>
-                <div class="rec-note" id="advRecTiNote">呼気 Te: 3.3s</div>
+                <div class="card-slider-wrap">
+                  <input type="range" id="advSetTiSlider" class="custom-range range-purple" min="0.40" max="2.20" step="0.05" value="1.00" />
+                  <div class="slider-rec-track">
+                    <div class="rec-marker marker-purple" id="advMarkerRecTi" title="Otis推奨Ti (クリックで推奨値へ移動)">
+                      <span class="marker-tri">▲</span><span class="marker-lbl" id="advMarkerLblTi">1.00</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="rec-sub">I:E比 <strong id="advRecIeRatio">1 : 3.3</strong> ／ 呼気 Te: <strong id="advTeInlineVal">3.3</strong>s</div>
+                <div class="rec-note te-badge-wrap"><span class="safety-status status-good" id="advRecTiNote">Te ≧ 3×RCexp（完全排出）</span></div>
               </div>
             </div>
           </section>
@@ -735,12 +914,12 @@
               </div>
             </div>
 
-            <!-- 呼気時間・Auto-PEEPリスク警告バナー -->
+            <!-- 呼気時間・Auto-PEEPリスク警告バナー (3段階バッジ強化) -->
             <div class="safety-banner auto-peep-banner" id="advAutoPeepBanner">
               <div class="safety-icon">🌬️</div>
               <div class="safety-info">
-                <div class="safety-title">呼気時間充足度 ＆ 内因性PEEP (Auto-PEEP) 評価</div>
-                <div class="safety-desc">呼気 Te: <strong id="advTeVal">3.3</strong>秒 ／ 完全呼出目安 (3×RCexp): <strong id="advTeNeedVal">1.5</strong>秒 <span class="safety-status status-good" id="advAutoPeepStatus">呼気充足 (リスク極小)</span></div>
+                <div class="safety-title">呼気時間 (Te) 充足度 ＆ 内因性PEEP (Auto-PEEP) 3段階判定</div>
+                <div class="safety-desc">呼気 Te: <strong id="advTeVal">3.3</strong>秒 (完全排出 3×RCexp: <strong id="advTeNeedVal">1.5</strong>秒 / 許容下限 2×RCexp: <strong id="advTeNeed2Val">1.0</strong>秒) <span class="safety-status status-good" id="advAutoPeepStatus">Te ≧ 3×RCexp（完全排出）</span></div>
               </div>
             </div>
           </section>
@@ -1990,6 +2169,6 @@ ight)$$（※CO2産生量 VCO2 一定の仮定）</span>
       </div>
     </div>
   </div>
-  <script src="app.js?v=20261030_01"></script>
+  <script src="app.js?v=20261030_02"></script>
 </body>
 </html>

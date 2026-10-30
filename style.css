@@ -3362,3 +3362,314 @@ body {
     font-size: 0.7rem;
   }
 }
+
+/* ==========================================================================
+   操作性向上機能：
+   1. 4スライダー固定ロックボタン (🔓 / 🔒)
+   2. スライダー上の Otis 推奨値マーカー (▲)
+   3. 呼気時間 (Te) 3段階充足度バッジ
+   4. 基本モード 6・7・8 mL/kg 推奨TV × 必要RR 一覧 & 病態適用中バッジ
+   ========================================================================== */
+
+/* 1. ラベル横ロックボタン (🔓 / 🔒) & ロック時カード強調 */
+.rec-label-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.btn-param-lock {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 24px;
+  padding: 0;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.btn-param-lock:hover {
+  background: rgba(251, 191, 36, 0.18);
+  border-color: rgba(251, 191, 36, 0.55);
+  transform: translateY(-1px);
+}
+
+.btn-param-lock.locked {
+  background: rgba(251, 191, 36, 0.25);
+  border-color: var(--color-amber);
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.45);
+}
+
+.rec-card.is-locked {
+  border-color: rgba(251, 191, 36, 0.75) !important;
+  box-shadow: 0 0 14px rgba(251, 191, 36, 0.18), inset 0 0 12px rgba(251, 191, 36, 0.06);
+}
+
+/* 2. スライダーバー上の Otis 推奨値マーカー (▲) */
+.card-slider-wrap {
+  position: relative;
+}
+
+.slider-rec-track {
+  position: relative;
+  width: 100%;
+  height: 24px;
+  margin-top: 1px;
+  pointer-events: none;
+}
+
+.rec-marker {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  pointer-events: auto;
+  z-index: 4;
+  transition: left 0.18s cubic-bezier(0.22, 1, 0.36, 1), transform 0.15s ease;
+  user-select: none;
+}
+
+.rec-marker:hover {
+  transform: translateX(-50%) scale(1.12);
+}
+
+.rec-marker-arrow,
+.marker-tri {
+  font-size: 0.62rem;
+  line-height: 0.8;
+  font-weight: 900;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.9));
+}
+
+.rec-marker-lbl,
+.marker-lbl {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.62rem;
+  font-weight: 800;
+  line-height: 1.1;
+  padding: 0 3px;
+  border-radius: 3px;
+  background: rgba(9, 13, 22, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  white-space: nowrap;
+}
+
+.marker-amber .rec-marker-arrow,
+.marker-amber .rec-marker-lbl,
+.marker-amber .marker-tri,
+.marker-amber .marker-lbl {
+  color: var(--color-amber);
+  border-color: rgba(251, 191, 36, 0.45);
+}
+
+.marker-teal .rec-marker-arrow,
+.marker-teal .rec-marker-lbl,
+.marker-teal .marker-tri,
+.marker-teal .marker-lbl {
+  color: var(--color-teal);
+  border-color: rgba(45, 212, 191, 0.45);
+}
+
+.marker-sky .rec-marker-arrow,
+.marker-sky .rec-marker-lbl,
+.marker-sky .marker-tri,
+.marker-sky .marker-lbl {
+  color: var(--color-sky);
+  border-color: rgba(56, 189, 248, 0.45);
+}
+
+.marker-purple .rec-marker-arrow,
+.marker-purple .rec-marker-lbl,
+.marker-purple .marker-tri,
+.marker-purple .marker-lbl {
+  color: var(--color-purple);
+  border-color: rgba(192, 132, 252, 0.45);
+}
+
+/* 3. 呼気時間 (Te) 3段階充足度バッジ */
+.te-tier-badge {
+  display: inline-block;
+  font-size: 0.68rem !important;
+  font-weight: 800 !important;
+  padding: 0.18rem 0.5rem !important;
+  border-radius: 999px !important;
+  margin-top: 0.15rem;
+  text-align: center;
+  line-height: 1.25;
+}
+
+.opt-autopeep-banner {
+  margin-top: 0.5rem;
+}
+
+/* 4. 基本モード：病態適用中バッジ & 6・7・8 mL/kg 推奨TV × 必要RR 一覧 */
+.disease-active-badge,
+.preset-active-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.74rem;
+  font-weight: 800;
+  padding: 0.22rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(45, 212, 191, 0.15);
+  border: 1px solid rgba(45, 212, 191, 0.45);
+  color: var(--color-teal);
+  box-shadow: 0 0 10px rgba(45, 212, 191, 0.15);
+  white-space: nowrap;
+}
+
+.preset-active-badge {
+  background: rgba(56, 189, 248, 0.14);
+  border-color: rgba(56, 189, 248, 0.45);
+  color: var(--color-sky);
+}
+
+.btn-apply-pct.active {
+  background: var(--color-teal) !important;
+  color: #090d16 !important;
+  border-color: var(--color-teal) !important;
+  box-shadow: 0 0 10px rgba(45, 212, 191, 0.45);
+}
+
+.tv-rr-combo-box {
+  margin-top: 0.85rem;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.9), rgba(9, 13, 22, 0.92));
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 0.9rem;
+}
+
+.tv-rr-combo-header,
+.combo-box-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.6rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px dashed var(--border-subtle);
+}
+
+.tv-rr-combo-title,
+.combo-box-title {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.tv-rr-combo-target,
+.combo-box-sub {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.tv-rr-combo-target strong,
+.combo-box-sub strong {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.9rem;
+  color: var(--color-amber);
+}
+
+.tv-rr-combo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.6rem;
+}
+
+.combo-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-sm);
+  padding: 0.55rem 0.65rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  text-align: center;
+}
+
+.combo-card-recommended,
+.combo-highlight {
+  background: rgba(45, 212, 191, 0.07);
+  border-color: rgba(45, 212, 191, 0.42);
+  box-shadow: 0 0 12px rgba(45, 212, 191, 0.1);
+}
+
+.combo-card-tag,
+.combo-card-badge {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.06);
+  padding: 0.12rem 0.5rem;
+  border-radius: 999px;
+}
+
+.combo-card-recommended .combo-card-tag,
+.combo-highlight .combo-card-badge {
+  color: var(--color-teal);
+  background: rgba(45, 212, 191, 0.16);
+}
+
+.combo-card-main,
+.combo-card-formula {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+  margin-top: 0.15rem;
+}
+
+.combo-tv strong,
+.combo-rr strong,
+.combo-val {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.combo-tv small,
+.combo-rr small,
+.combo-unit {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.combo-times,
+.combo-mul {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--text-dim);
+  margin: 0 0.15rem;
+}
+
+.combo-card-sub {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.66rem;
+  color: var(--text-dim);
+}
+
+@media (max-width: 640px) {
+  .tv-rr-combo-grid {
+    grid-template-columns: 1fr;
+    gap: 0.45rem;
+  }
+}

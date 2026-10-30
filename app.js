@@ -190,6 +190,17 @@
       if (advCSlider) advCSlider.value = v;
     }
 
+    if (presetNorm) presetNorm.classList.remove("active");
+    if (presetArds) presetArds.classList.remove("active");
+    if (presetCopd) presetCopd.classList.remove("active");
+    if (advPresetNorm) advPresetNorm.classList.remove("active");
+    if (advPresetArds) advPresetArds.classList.remove("active");
+    if (advPresetCopd) advPresetCopd.classList.remove("active");
+    const optBadge = document.getElementById("optPresetActiveBadge");
+    const advBadge = document.getElementById("advPresetActiveBadge");
+    if (optBadge) optBadge.textContent = "現在：カスタム力学設定";
+    if (advBadge) advBadge.textContent = "現在：カスタム力学設定";
+
     recomputeRecommendation(true);
     recomputeAdvRecommendation(true);
     isSyncing = false;
@@ -265,8 +276,71 @@
   const bState = {
     gender: "male",
     height: 170,
-    mvPct: 100
+    mvPct: 100,
+    activeDisease: "安静時（基準）"
   };
+
+  // ==========================================
+  // スライダー固定ロック状態 (力学最適化 & 高度臨床 共通)
+  // ==========================================
+  const lockState = {
+    mv: false,
+    vt: false,
+    rr: false,
+    ti: false
+  };
+
+  function toggleParamLock(param) {
+    if (!Object.prototype.hasOwnProperty.call(lockState, param)) return;
+    if (param === "ti") {
+      lockState.ti = !lockState.ti;
+      showToast(lockState.ti ? "🔒 吸気時間 (Ti) を固定しました" : "🔓 吸気時間 (Ti) の固定を解除しました");
+    } else {
+      const nextState = !lockState[param];
+      // MV, Vt, RR は MV = Vt × RR の関係上、同時に1つのみロック可能
+      lockState.mv = false;
+      lockState.vt = false;
+      lockState.rr = false;
+      lockState[param] = nextState;
+
+      const labelMap = { mv: "分時換気量 (MV)", vt: "一回換気量 (Vt)", rr: "呼吸回数 (RR)" };
+      if (nextState) {
+        showToast("🔒 " + labelMap[param] + " を固定しました（他スライダー操作時に連動維持）");
+      } else {
+        showToast("🔓 " + labelMap[param] + " の固定を解除しました");
+      }
+    }
+    updateLockUI();
+  }
+
+  function updateLockUI() {
+    document.querySelectorAll(".btn-param-lock").forEach((btn) => {
+      const target = btn.getAttribute("data-lock-target");
+      const isLocked = !!lockState[target];
+      btn.classList.toggle("locked", isLocked);
+      btn.setAttribute("aria-pressed", isLocked ? "true" : "false");
+      btn.textContent = isLocked ? "🔒" : "🔓";
+      btn.title = isLocked ? "現在ロック中（クリックで固定解除）" : "クリックでこの項目をロック（固定）";
+      const parentCard = btn.closest(".rec-card");
+      if (parentCard) {
+        parentCard.classList.toggle("is-locked", isLocked);
+      }
+    });
+  }
+
+  function updateRecMarker(markerId, labelId, recVal, min, max, decimals) {
+    const marker = document.getElementById(markerId);
+    const label = document.getElementById(labelId);
+    if (!marker) return;
+    const clamped = Math.max(min, Math.min(max, recVal));
+    const pct = ((clamped - min) / (max - min)) * 100;
+    // スライダーのthumb幅(26px -> 半径13px)に合わせて中心位置を補正
+    const offsetPx = 13 - (pct * 0.26);
+    marker.style.left = "calc(" + pct.toFixed(2) + "% + " + offsetPx.toFixed(2) + "px)";
+    if (label) {
+      label.textContent = decimals > 0 ? recVal.toFixed(decimals) : Math.round(recVal).toString();
+    }
+  }
 
   const bBtnMale = document.getElementById("bBtnMale");
   const bBtnFemale = document.getElementById("bBtnFemale");
@@ -334,6 +408,30 @@
 
     bMvTargetL.textContent = targetMvL.toFixed(1);
     bMvTargetMl.textContent = targetMvMl.toLocaleString();
+
+    // 6・7・8 mL/kg 設定時の「推奨TV × 必要RR」組み合わせ一覧を更新
+    const bComboTargetMvRef = document.getElementById("bComboTargetMvRef");
+    if (bComboTargetMvRef) bComboTargetMvRef.textContent = targetMvL.toFixed(1);
+
+    [6, 7, 8].forEach((mlPerKg) => {
+      const tvVal = Math.round(pbw * mlPerKg);
+      const rrVal = Math.max(1, Math.round(targetMvMl / tvVal));
+      const actualMvL = ((tvVal * rrVal) / 1000).toFixed(1);
+
+      const tvEl = document.getElementById("bComboTv" + mlPerKg);
+      const rrEl = document.getElementById("bComboRr" + mlPerKg);
+      const subEl = document.getElementById("bComboSub" + mlPerKg);
+
+      if (tvEl) tvEl.textContent = tvVal;
+      if (rrEl) rrEl.textContent = rrVal;
+      if (subEl) subEl.textContent = "実測MV: " + actualMvL + " L/min (" + tvVal + "mL × " + rrVal + "回)";
+    });
+
+    // 病態別プリセット適用中バッジの更新
+    const bActiveDiseaseBadge = document.getElementById("bActiveDiseaseBadge");
+    if (bActiveDiseaseBadge) {
+      bActiveDiseaseBadge.textContent = "現在：" + (bState.activeDisease || "カスタム設定") + " 適用中";
+    }
 
     bHeightInput.value = bState.height;
     bHeightSlider.value = bState.height;
@@ -431,14 +529,28 @@
     optState.etco2 = et;
     optState.r = r;
     optState.c = c;
+    advState.etco2 = et;
+    advState.r = r;
+    advState.c = c;
 
     presetNorm.classList.toggle("active", type === "norm");
     presetArds.classList.toggle("active", type === "ards");
     presetCopd.classList.toggle("active", type === "copd");
+    if (advPresetNorm) advPresetNorm.classList.toggle("active", type === "norm");
+    if (advPresetArds) advPresetArds.classList.toggle("active", type === "ards");
+    if (advPresetCopd) advPresetCopd.classList.toggle("active", type === "copd");
+
+    const labelMap = { norm: "正常肺", ards: "ARDS (拘束性)", copd: "COPD (閉塞性)" };
+    const optBadge = document.getElementById("optPresetActiveBadge");
+    const advBadge = document.getElementById("advPresetActiveBadge");
+    if (optBadge && labelMap[type]) optBadge.textContent = "現在：" + labelMap[type] + " 適用中";
+    if (advBadge && labelMap[type]) advBadge.textContent = "現在：" + labelMap[type] + " 適用中";
 
     triggerHighlight([cardEtco2, cardR, cardC]);
     syncInputsToOptState();
     recomputeRecommendation(true);
+    syncInputsToAdvState();
+    recomputeAdvRecommendation(true);
   }
 
   function triggerHighlight(elements) {
@@ -457,24 +569,44 @@
     optState.setTi = optState.recTi;
     syncInputsToOptState();
     renderOptView();
+    syncVentilationFromOpt();
   });
 
   function handleMvChange(newMv) {
     optState.setMv = parseFloat(newMv.toFixed(1));
     const rcExpSec = (optState.r * (optState.c / 1000));
-    const vdMl = Math.round(2.2 * optState.pbw);
-    const vdL = vdMl / 1000;
-    const a = 0.33;
 
-    const term1 = 1 + 2 * a * rcExpSec * (optState.setMv / vdL);
-    let optF = (Math.sqrt(Math.max(0.1, term1)) - 1) / (a * rcExpSec);
-    optF = Math.round(optF);
-    if (optF < 6) optF = 6;
-    if (optF > 40) optF = 40;
+    if (lockState.vt && optState.setVt > 0) {
+      // Vt がロックされている場合：Vt を固定したまま RR を連動計算
+      let newRr = Math.round((optState.setMv * 1000) / optState.setVt);
+      if (newRr < 5) newRr = 5;
+      if (newRr > 50) newRr = 50;
+      optState.setRr = newRr;
+    } else if (lockState.rr && optState.setRr > 0) {
+      // RR がロックされている場合：RR を固定したまま Vt を連動計算
+      let newVt = Math.round((optState.setMv * 1000) / optState.setRr);
+      if (newVt < 150) newVt = 150;
+      if (newVt > 1200) newVt = 1200;
+      optState.setVt = newVt;
+    } else {
+      // ロックなし（または MV 自身を操作時）：Otis 式で最適 RR と Vt を連動計算
+      const vdMl = Math.round(2.2 * optState.pbw);
+      const vdL = vdMl / 1000;
+      const a = 0.33;
 
-    optState.setRr = optF;
-    optState.setVt = Math.round((optState.setMv * 1000) / optState.setRr);
-    optState.setTi = calcRecommendedTi(optState.setRr, rcExpSec);
+      const term1 = 1 + 2 * a * rcExpSec * (optState.setMv / vdL);
+      let optF = (Math.sqrt(Math.max(0.1, term1)) - 1) / (a * rcExpSec);
+      optF = Math.round(optF);
+      if (optF < 6) optF = 6;
+      if (optF > 40) optF = 40;
+
+      optState.setRr = optF;
+      optState.setVt = Math.round((optState.setMv * 1000) / optState.setRr);
+    }
+
+    if (!lockState.ti) {
+      optState.setTi = calcRecommendedTi(optState.setRr, rcExpSec);
+    }
 
     syncInputsToOptState();
     renderOptView();
@@ -485,13 +617,25 @@
     optState.setVt = Math.round(newVt);
     if (optState.setVt <= 0) return;
 
-    let newRr = Math.round((optState.setMv * 1000) / optState.setVt);
-    if (newRr < 5) newRr = 5;
-    if (newRr > 50) newRr = 50;
-
-    optState.setRr = newRr;
     const rcExpSec = (optState.r * (optState.c / 1000));
-    optState.setTi = calcRecommendedTi(optState.setRr, rcExpSec);
+
+    if (lockState.rr && optState.setRr > 0) {
+      // RR がロックされている場合：RR を固定したまま MV を連動計算
+      let newMv = Math.round((optState.setVt * optState.setRr) / 100) / 10;
+      if (newMv < 2.0) newMv = 2.0;
+      if (newMv > 22.0) newMv = 22.0;
+      optState.setMv = newMv;
+    } else {
+      // MV がロックされている、またはロックなしの場合：MV を維持したまま RR を連動計算
+      let newRr = Math.round((optState.setMv * 1000) / optState.setVt);
+      if (newRr < 5) newRr = 5;
+      if (newRr > 50) newRr = 50;
+      optState.setRr = newRr;
+    }
+
+    if (!lockState.ti) {
+      optState.setTi = calcRecommendedTi(optState.setRr, rcExpSec);
+    }
 
     syncInputsToOptState();
     renderOptView();
@@ -502,13 +646,25 @@
     optState.setRr = Math.round(newRr);
     if (optState.setRr <= 0) return;
 
-    let newVt = Math.round((optState.setMv * 1000) / optState.setRr);
-    if (newVt < 150) newVt = 150;
-    if (newVt > 1200) newVt = 1200;
-
-    optState.setVt = newVt;
     const rcExpSec = (optState.r * (optState.c / 1000));
-    optState.setTi = calcRecommendedTi(optState.setRr, rcExpSec);
+
+    if (lockState.vt && optState.setVt > 0) {
+      // Vt がロックされている場合：Vt を固定したまま MV を連動計算
+      let newMv = Math.round((optState.setVt * optState.setRr) / 100) / 10;
+      if (newMv < 2.0) newMv = 2.0;
+      if (newMv > 22.0) newMv = 22.0;
+      optState.setMv = newMv;
+    } else {
+      // MV がロックされている、またはロックなしの場合：MV を維持したまま Vt を連動計算
+      let newVt = Math.round((optState.setMv * 1000) / optState.setRr);
+      if (newVt < 150) newVt = 150;
+      if (newVt > 1200) newVt = 1200;
+      optState.setVt = newVt;
+    }
+
+    if (!lockState.ti) {
+      optState.setTi = calcRecommendedTi(optState.setRr, rcExpSec);
+    }
 
     syncInputsToOptState();
     renderOptView();
@@ -519,6 +675,7 @@
     optState.setTi = parseFloat(newTi.toFixed(2));
     syncInputsToOptState();
     renderOptView();
+    syncVentilationFromOpt();
   }
 
   function syncInputsToOptState() {
@@ -567,10 +724,26 @@
     optState.recTi = calcRecommendedTi(optState.recRr, rcExpSec);
 
     if (applyToSet) {
-      optState.setMv = optState.recMv;
-      optState.setVt = optState.recVt;
-      optState.setRr = optState.recRr;
-      optState.setTi = optState.recTi;
+      if (!lockState.mv) {
+        optState.setMv = optState.recMv;
+      }
+      if (lockState.vt && optState.setVt > 0) {
+        let newRr = Math.round((optState.setMv * 1000) / optState.setVt);
+        if (newRr < 5) newRr = 5;
+        if (newRr > 50) newRr = 50;
+        optState.setRr = newRr;
+      } else if (lockState.rr && optState.setRr > 0) {
+        let newVt = Math.round((optState.setMv * 1000) / optState.setRr);
+        if (newVt < 150) newVt = 150;
+        if (newVt > 1200) newVt = 1200;
+        optState.setVt = newVt;
+      } else {
+        optState.setVt = optState.recVt;
+        optState.setRr = optState.recRr;
+      }
+      if (!lockState.ti) {
+        optState.setTi = calcRecommendedTi(optState.setRr, rcExpSec);
+      }
       syncInputsToOptState();
     }
 
@@ -611,6 +784,12 @@
     pillRecRr.textContent = "推奨 " + optState.recRr;
     pillRecTi.textContent = "推奨 " + optState.recTi.toFixed(2);
 
+    // スライダー上の Otis 推奨値マーカー (▲) 位置更新
+    updateRecMarker("markerRecMv", "markerLblMv", optState.recMv, 2.0, 22.0, 1);
+    updateRecMarker("markerRecVt", "markerLblVt", optState.recVt, 200, 950, 0);
+    updateRecMarker("markerRecRr", "markerLblRr", optState.recRr, 6, 42, 0);
+    updateRecMarker("markerRecTi", "markerLblTi", optState.recTi, 0.40, 2.20, 2);
+
     recMvMl.textContent = Math.round(optState.setMv * 1000).toLocaleString();
     recVtPerKg.textContent = (optState.setVt / optState.pbw).toFixed(1);
 
@@ -621,13 +800,44 @@
     const ieRatioVal = Math.round((te / optState.setTi) * 10) / 10;
     recIeRatio.textContent = "1 : " + ieRatioVal.toFixed(1);
 
-    const safeTe = 2 * rcExpSec;
-    if (te >= safeTe) {
-      recTiNote.textContent = "呼気 Te: " + te.toFixed(1) + "s (≧ 2×RCexp: 充足)";
-      recTiNote.style.color = "var(--color-emerald)";
+    // 呼気時間 (Te) の充足度判定（3段階バッジ表示）
+    const teNeed3Rc = Math.round((3 * rcExpSec) * 10) / 10;
+    const teNeed2Rc = Math.round((2 * rcExpSec) * 10) / 10;
+    const optTeVal = document.getElementById("optTeVal");
+    const optTeInlineVal = document.getElementById("optTeInlineVal");
+    const optTeNeed3Val = document.getElementById("optTeNeed3Val");
+    const optTeNeed2Val = document.getElementById("optTeNeed2Val");
+    const optAutoPeepStatus = document.getElementById("optAutoPeepStatus");
+
+    if (optTeVal) optTeVal.textContent = te.toFixed(1);
+    if (optTeInlineVal) optTeInlineVal.textContent = te.toFixed(1);
+    if (optTeNeed3Val) optTeNeed3Val.textContent = teNeed3Rc.toFixed(1);
+    if (optTeNeed2Val) optTeNeed2Val.textContent = teNeed2Rc.toFixed(1);
+
+    if (te >= 3 * rcExpSec) {
+      recTiNote.textContent = "Te " + te.toFixed(1) + "s ≧ 3×RCexp（完全排出）";
+      recTiNote.className = "te-tier-badge safety-status status-good";
+      recTiNote.style.color = "";
+      if (optAutoPeepStatus) {
+        optAutoPeepStatus.textContent = "Te ≧ 3×RCexp（完全排出）";
+        optAutoPeepStatus.className = "safety-status status-good";
+      }
+    } else if (te >= 2 * rcExpSec) {
+      recTiNote.textContent = "2×RCexp ≦ Te " + te.toFixed(1) + "s < 3×RCexp（許容・エアトラップ注意）";
+      recTiNote.className = "te-tier-badge safety-status status-warn";
+      recTiNote.style.color = "";
+      if (optAutoPeepStatus) {
+        optAutoPeepStatus.textContent = "2×RCexp ≦ Te < 3×RCexp（許容・エアトラップ注意）";
+        optAutoPeepStatus.className = "safety-status status-warn";
+      }
     } else {
-      recTiNote.textContent = "呼気 Te: " + te.toFixed(1) + "s (呼気不足・AutoPEEP注意)";
-      recTiNote.style.color = "var(--color-rose)";
+      recTiNote.textContent = "Te " + te.toFixed(1) + "s < 2×RCexp（Auto-PEEP危険）";
+      recTiNote.className = "te-tier-badge safety-status status-danger";
+      recTiNote.style.color = "";
+      if (optAutoPeepStatus) {
+        optAutoPeepStatus.textContent = "Te < 2×RCexp（Auto-PEEP危険）";
+        optAutoPeepStatus.className = "safety-status status-danger";
+      }
     }
 
     const dp = Math.round((optState.setVt / optState.c) * 10) / 10;
@@ -883,14 +1093,28 @@
     advState.r = r;
     advState.c = c;
     advState.paco2 = paco2;
+    optState.etco2 = et;
+    optState.r = r;
+    optState.c = c;
 
     advPresetNorm.classList.toggle("active", type === "norm");
     advPresetArds.classList.toggle("active", type === "ards");
     advPresetCopd.classList.toggle("active", type === "copd");
+    if (presetNorm) presetNorm.classList.toggle("active", type === "norm");
+    if (presetArds) presetArds.classList.toggle("active", type === "ards");
+    if (presetCopd) presetCopd.classList.toggle("active", type === "copd");
+
+    const labelMap = { norm: "正常肺", ards: "ARDS (拘束性)", copd: "COPD (閉塞性)" };
+    const optBadge = document.getElementById("optPresetActiveBadge");
+    const advBadge = document.getElementById("advPresetActiveBadge");
+    if (optBadge && labelMap[type]) optBadge.textContent = "現在：" + labelMap[type] + " 適用中";
+    if (advBadge && labelMap[type]) advBadge.textContent = "現在：" + labelMap[type] + " 適用中";
 
     triggerHighlight([cardAdvEtco2, cardAdvR, cardAdvC]);
     syncInputsToAdvState();
     recomputeAdvRecommendation(true);
+    syncInputsToOptState();
+    recomputeRecommendation(true);
   }
 
   btnPaco2Norm.addEventListener("click", () => setTargetPaco2(40, btnPaco2Norm));
@@ -936,24 +1160,44 @@
     advState.setTi = advState.recTi;
     syncInputsToAdvState();
     renderAdvView();
+    syncVentilationFromAdv();
   });
 
   function handleAdvMvChange(newMv) {
     advState.setMv = parseFloat(newMv.toFixed(1));
     const rcExpSec = (advState.r * (advState.c / 1000));
-    const vdMl = Math.round(2.2 * advState.pbw);
-    const vdL = vdMl / 1000;
-    const a = 0.33;
 
-    const term1 = 1 + 2 * a * rcExpSec * (advState.setMv / vdL);
-    let optF = (Math.sqrt(Math.max(0.1, term1)) - 1) / (a * rcExpSec);
-    optF = Math.round(optF);
-    if (optF < 6) optF = 6;
-    if (optF > 40) optF = 40;
+    if (lockState.vt && advState.setVt > 0) {
+      // Vt がロックされている場合：Vt を固定したまま RR を連動計算
+      let newRr = Math.round((advState.setMv * 1000) / advState.setVt);
+      if (newRr < 5) newRr = 5;
+      if (newRr > 50) newRr = 50;
+      advState.setRr = newRr;
+    } else if (lockState.rr && advState.setRr > 0) {
+      // RR がロックされている場合：RR を固定したまま Vt を連動計算
+      let newVt = Math.round((advState.setMv * 1000) / advState.setRr);
+      if (newVt < 150) newVt = 150;
+      if (newVt > 1200) newVt = 1200;
+      advState.setVt = newVt;
+    } else {
+      // ロックなし（または MV 自身を操作時）：Otis 式で最適 RR と Vt を連動計算
+      const vdMl = Math.round(2.2 * advState.pbw);
+      const vdL = vdMl / 1000;
+      const a = 0.33;
 
-    advState.setRr = optF;
-    advState.setVt = Math.round((advState.setMv * 1000) / advState.setRr);
-    advState.setTi = calcRecommendedTi(advState.setRr, rcExpSec);
+      const term1 = 1 + 2 * a * rcExpSec * (advState.setMv / vdL);
+      let optF = (Math.sqrt(Math.max(0.1, term1)) - 1) / (a * rcExpSec);
+      optF = Math.round(optF);
+      if (optF < 6) optF = 6;
+      if (optF > 40) optF = 40;
+
+      advState.setRr = optF;
+      advState.setVt = Math.round((advState.setMv * 1000) / advState.setRr);
+    }
+
+    if (!lockState.ti) {
+      advState.setTi = calcRecommendedTi(advState.setRr, rcExpSec);
+    }
 
     syncInputsToAdvState();
     renderAdvView();
@@ -964,13 +1208,25 @@
     advState.setVt = Math.round(newVt);
     if (advState.setVt <= 0) return;
 
-    let newRr = Math.round((advState.setMv * 1000) / advState.setVt);
-    if (newRr < 5) newRr = 5;
-    if (newRr > 50) newRr = 50;
-
-    advState.setRr = newRr;
     const rcExpSec = (advState.r * (advState.c / 1000));
-    advState.setTi = calcRecommendedTi(advState.setRr, rcExpSec);
+
+    if (lockState.rr && advState.setRr > 0) {
+      // RR がロックされている場合：RR を固定したまま MV を連動計算
+      let newMv = Math.round((advState.setVt * advState.setRr) / 100) / 10;
+      if (newMv < 2.0) newMv = 2.0;
+      if (newMv > 22.0) newMv = 22.0;
+      advState.setMv = newMv;
+    } else {
+      // MV がロックされている、またはロックなしの場合：MV を維持したまま RR を連動計算
+      let newRr = Math.round((advState.setMv * 1000) / advState.setVt);
+      if (newRr < 5) newRr = 5;
+      if (newRr > 50) newRr = 50;
+      advState.setRr = newRr;
+    }
+
+    if (!lockState.ti) {
+      advState.setTi = calcRecommendedTi(advState.setRr, rcExpSec);
+    }
 
     syncInputsToAdvState();
     renderAdvView();
@@ -981,13 +1237,25 @@
     advState.setRr = Math.round(newRr);
     if (advState.setRr <= 0) return;
 
-    let newVt = Math.round((advState.setMv * 1000) / advState.setRr);
-    if (newVt < 150) newVt = 150;
-    if (newVt > 1200) newVt = 1200;
-
-    advState.setVt = newVt;
     const rcExpSec = (advState.r * (advState.c / 1000));
-    advState.setTi = calcRecommendedTi(advState.setRr, rcExpSec);
+
+    if (lockState.vt && advState.setVt > 0) {
+      // Vt がロックされている場合：Vt を固定したまま MV を連動計算
+      let newMv = Math.round((advState.setVt * advState.setRr) / 100) / 10;
+      if (newMv < 2.0) newMv = 2.0;
+      if (newMv > 22.0) newMv = 22.0;
+      advState.setMv = newMv;
+    } else {
+      // MV がロックされている、またはロックなしの場合：MV を維持したまま Vt を連動計算
+      let newVt = Math.round((advState.setMv * 1000) / advState.setRr);
+      if (newVt < 150) newVt = 150;
+      if (newVt > 1200) newVt = 1200;
+      advState.setVt = newVt;
+    }
+
+    if (!lockState.ti) {
+      advState.setTi = calcRecommendedTi(advState.setRr, rcExpSec);
+    }
 
     syncInputsToAdvState();
     renderAdvView();
@@ -998,6 +1266,7 @@
     advState.setTi = parseFloat(newTi.toFixed(2));
     syncInputsToAdvState();
     renderAdvView();
+    syncVentilationFromAdv();
   }
 
   function syncInputsToAdvState() {
@@ -1054,10 +1323,26 @@
     advState.recTi = calcRecommendedTi(advState.recRr, rcExpSec);
 
     if (applyToSet) {
-      advState.setMv = advState.recMv;
-      advState.setVt = advState.recVt;
-      advState.setRr = advState.recRr;
-      advState.setTi = advState.recTi;
+      if (!lockState.mv) {
+        advState.setMv = advState.recMv;
+      }
+      if (lockState.vt && advState.setVt > 0) {
+        let newRr = Math.round((advState.setMv * 1000) / advState.setVt);
+        if (newRr < 5) newRr = 5;
+        if (newRr > 50) newRr = 50;
+        advState.setRr = newRr;
+      } else if (lockState.rr && advState.setRr > 0) {
+        let newVt = Math.round((advState.setMv * 1000) / advState.setRr);
+        if (newVt < 150) newVt = 150;
+        if (newVt > 1200) newVt = 1200;
+        advState.setVt = newVt;
+      } else {
+        advState.setVt = advState.recVt;
+        advState.setRr = advState.recRr;
+      }
+      if (!lockState.ti) {
+        advState.setTi = calcRecommendedTi(advState.setRr, rcExpSec);
+      }
       syncInputsToAdvState();
     }
 
@@ -1118,6 +1403,12 @@
     advPillRecRr.textContent = "推奨 " + advState.recRr;
     advPillRecTi.textContent = "推奨 " + advState.recTi.toFixed(2);
 
+    // スライダー上の Otis 推奨値マーカー (▲) 位置更新
+    updateRecMarker("advMarkerRecMv", "advMarkerLblMv", advState.recMv, 2.0, 22.0, 1);
+    updateRecMarker("advMarkerRecVt", "advMarkerLblVt", advState.recVt, 200, 950, 0);
+    updateRecMarker("advMarkerRecRr", "advMarkerLblRr", advState.recRr, 6, 42, 0);
+    updateRecMarker("advMarkerRecTi", "advMarkerLblTi", advState.recTi, 0.40, 2.20, 2);
+
     advRecMvMl.textContent = Math.round(advState.setMv * 1000).toLocaleString();
     advRecVtPerKg.textContent = (advState.setVt / advState.pbw).toFixed(1);
 
@@ -1165,26 +1456,35 @@
       advPpeakNote.textContent = "漸減波終了時流速圧損ほぼゼロ";
     }
 
-    // 3. 呼気時間 & Auto-PEEP判定
+    // 3. 呼気時間 (Te) & Auto-PEEP判定（3段階バッジ表示）
     const teNeed3Rc = Math.round((3 * rcExpSec) * 10) / 10;
-    advTeVal.textContent = te.toFixed(1);
-    advTeNeedVal.textContent = teNeed3Rc.toFixed(1);
+    const teNeed2Rc = Math.round((2 * rcExpSec) * 10) / 10;
+    const advTeNeed2Val = document.getElementById("advTeNeed2Val");
+    const advTeInlineVal = document.getElementById("advTeInlineVal");
 
-    if (te >= teNeed3Rc) {
-      advAutoPeepStatus.textContent = "呼気充足 (Auto-PEEP極小)";
+    advTeVal.textContent = te.toFixed(1);
+    if (advTeInlineVal) advTeInlineVal.textContent = te.toFixed(1);
+    advTeNeedVal.textContent = teNeed3Rc.toFixed(1);
+    if (advTeNeed2Val) advTeNeed2Val.textContent = teNeed2Rc.toFixed(1);
+
+    if (te >= 3 * rcExpSec) {
+      advAutoPeepStatus.textContent = "Te ≧ 3×RCexp（完全排出）";
       advAutoPeepStatus.className = "safety-status status-good";
-      advRecTiNote.textContent = "呼気 Te: " + te.toFixed(1) + "s (充足)";
-      advRecTiNote.style.color = "var(--color-emerald)";
+      advRecTiNote.textContent = "Te " + te.toFixed(1) + "s ≧ 3×RCexp（完全排出）";
+      advRecTiNote.className = "te-tier-badge safety-status status-good";
+      advRecTiNote.style.color = "";
     } else if (te >= 2 * rcExpSec) {
-      advAutoPeepStatus.textContent = "呼気不足気味 (95%未呼出)";
+      advAutoPeepStatus.textContent = "2×RCexp ≦ Te < 3×RCexp（許容・エアトラップ注意）";
       advAutoPeepStatus.className = "safety-status status-warn";
-      advRecTiNote.textContent = "呼気 Te: " + te.toFixed(1) + "s (やや不足)";
-      advRecTiNote.style.color = "var(--color-amber)";
+      advRecTiNote.textContent = "2×RCexp ≦ Te " + te.toFixed(1) + "s < 3×RCexp（許容・エアトラップ注意）";
+      advRecTiNote.className = "te-tier-badge safety-status status-warn";
+      advRecTiNote.style.color = "";
     } else {
-      advAutoPeepStatus.textContent = "危険：Auto-PEEP/エアトラッピング";
+      advAutoPeepStatus.textContent = "Te < 2×RCexp（Auto-PEEP危険）";
       advAutoPeepStatus.className = "safety-status status-danger";
-      advRecTiNote.textContent = "呼気 Te: " + te.toFixed(1) + "s (Auto-PEEP警告)";
-      advRecTiNote.style.color = "var(--color-rose)";
+      advRecTiNote.textContent = "Te " + te.toFixed(1) + "s < 2×RCexp（Auto-PEEP危険）";
+      advRecTiNote.className = "te-tier-badge safety-status status-danger";
+      advRecTiNote.style.color = "";
     }
 
     if (advGraphTargetVal) advGraphTargetVal.textContent = advState.setRr + " bpm / " + advState.setVt + " mL";
@@ -1386,6 +1686,10 @@
 
       case "bMvPct":
         bState.mvPct = Math.round(val);
+        if (!bState._applyingPreset) {
+          bState.activeDisease = bState.mvPct === 100 ? "安静時（基準）" : "カスタム設定 (" + bState.mvPct + "%)";
+          document.querySelectorAll(".btn-apply-pct").forEach((b) => b.classList.remove("active"));
+        }
         updateBasic();
         syncVentilationFromBasic();
         break;
@@ -1983,7 +2287,7 @@
   initManualModal();
 
   // ==========================================
-  // 病態別%分時換気量 クイック適用リスナー
+  // 病態別%分時換気量 クイック適用リスナー ＆ ロックボタン・推奨マーカーバインド
   // ==========================================
   function initDiseaseRefTable() {
     const buttons = document.querySelectorAll(".btn-apply-pct");
@@ -1991,15 +2295,54 @@
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
         const pct = parseInt(btn.getAttribute("data-pct"), 10);
+        const diseaseName = btn.getAttribute("data-disease") || ("プリセット (" + pct + "%)");
         if (!isNaN(pct)) {
+          bState.activeDisease = diseaseName;
+          bState._applyingPreset = true;
+          buttons.forEach((b) => b.classList.toggle("active", b === btn));
           setParamValue("bMvPct", pct);
-          showToast(`💡 %分時換気量を ${pct}% に設定しました（全モード連動）`);
+          bState._applyingPreset = false;
+          showToast(`💡 「${diseaseName}」(%MV: ${pct}%) を適用しました`);
         }
       });
+    });
+
+    // ロックボタン (🔓 / 🔒) バインド
+    document.querySelectorAll(".btn-param-lock").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const target = btn.getAttribute("data-lock-target");
+        if (target) {
+          toggleParamLock(target);
+        }
+      });
+    });
+
+    // スライダー上の Otis 推奨値マーカー (▲) クリックで推奨値にスナップ
+    const markerMap = [
+      { id: "markerRecMv", apply: () => handleMvChange(optState.recMv) },
+      { id: "markerRecVt", apply: () => handleVtChange(optState.recVt) },
+      { id: "markerRecRr", apply: () => handleRrChange(optState.recRr) },
+      { id: "markerRecTi", apply: () => handleTiChange(optState.recTi) },
+      { id: "advMarkerRecMv", apply: () => handleAdvMvChange(advState.recMv) },
+      { id: "advMarkerRecVt", apply: () => handleAdvVtChange(advState.recVt) },
+      { id: "advMarkerRecRr", apply: () => handleAdvRrChange(advState.recRr) },
+      { id: "advMarkerRecTi", apply: () => handleAdvTiChange(advState.recTi) }
+    ];
+    markerMap.forEach((m) => {
+      const el = document.getElementById(m.id);
+      if (el) {
+        el.addEventListener("click", (e) => {
+          e.stopPropagation();
+          m.apply();
+          showToast("🎯 Otis推奨値へ合わせました");
+        });
+      }
     });
   }
 
   initDiseaseRefTable();
+  updateLockUI();
   initExportImport();
   updateBasic();
   recomputeRecommendation(true);
